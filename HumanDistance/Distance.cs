@@ -120,7 +120,7 @@ public static class Distance
         {
             var result = CalculateInternal(input, candidate, layout);
             var score = result.TypoScore(keyboardPenaltyStrength);
-            if (score > bestScore)
+            if (score >= bestScore)
             {
                 bestScore = score;
                 best = candidate;

@@ -694,6 +694,16 @@ public class DistanceTests
     }
 
     [Fact]
+    public void BestMatch_MeetingMinimumScore_IsAccepted()
+    {
+        var candidates = new[] { "apple", "banana" };
+
+        // Exact match produces score 1.0, which should satisfy a 1.0 threshold
+        var result = Distance.BestMatch("apple", candidates, minScore: 1.0);
+        Assert.Equal("apple", result);
+    }
+
+    [Fact]
     public void BestMatch_MultipleSimilarCandidates_ReturnsBest()
     {
         var candidates = new[] { "testing", "tasting", "tosting" };
