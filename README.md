@@ -213,11 +213,33 @@ dotnet run -c Release --project HumanDistance.Benchmarks
 
 ### Results
 
-Benchmark results are recorded here after running the suite:
+*13th Gen Intel Core i7-13620H, .NET 8.0.8, Windows 11*
 
-```
-Pending — run the benchmark command above and paste the summary output here.
-```
+**Distance.Calculate** (64-character strings):
+
+| Layout | Mean | Allocated |
+|--------|-----:|----------:|
+| QWERTY (default) | 17.4 μs | 20.7 KB |
+| Custom | 17.1 μs | 20.7 KB |
+| AZERTY | 18.5 μs | 25.7 KB |
+| QWERTZ | 18.8 μs | 25.7 KB |
+
+**Scaling by string length:**
+
+| Length | Mean | Allocated |
+|-------:|--------:|----------:|
+| 4 | 136 ns | 216 B |
+| 16 | 1.2 μs | 1.5 KB |
+| 64 | 17.2 μs | 20.7 KB |
+| 256 | 391 μs | 323 KB |
+
+**Distance.BestMatch** (12-character input):
+
+| Candidates | Mean |
+|-----------:|--------:|
+| 10 | 7.5 μs |
+| 100 | 80 μs |
+| 1000 | 860 μs |
 
 ## License
 
