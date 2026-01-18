@@ -1,4 +1,4 @@
-using HumanDistance.Internal;
+using HumanDistance.Keyboards;
 
 namespace HumanDistance;
 
@@ -18,7 +18,13 @@ public static class Calculator
             return DamerauLevenshtein.Calculate(source, target);
         }
 
-        var layout = KeyboardDistanceCalculator.CreateLayout(options.Layout);
+        KeyboardLayoutBase layout = options.Layout switch
+        {
+            KeyboardLayout.Qwerty => new QwertyLayout(),
+            KeyboardLayout.Azerty => new AzertyLayout(),
+            KeyboardLayout.Qwertz => new QwertzLayout(),
+            _ => throw new ArgumentOutOfRangeException(nameof(options), options.Layout, "Unknown keyboard layout")
+        };
 
         return DamerauLevenshtein.Calculate(source, target, layout);
     }

@@ -1,7 +1,7 @@
 using System.Numerics;
 using HumanDistance.Keyboards;
 
-namespace HumanDistance.Internal;
+namespace HumanDistance;
 
 internal static class DamerauLevenshtein
 {
@@ -10,7 +10,29 @@ internal static class DamerauLevenshtein
 
     public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, KeyboardLayoutBase layout)
         => CalculateCore(source, target,
-            (a, b) => KeyboardDistanceCalculator.GetSubstitutionCost(a, b, layout));
+            (a, b) => GetSubstitutionCost(a, b, layout));
+
+    private static double GetSubstitutionCost(char a, char b, KeyboardLayoutBase layout)
+    {
+        if (char.ToLowerInvariant(a) == char.ToLowerInvariant(b))
+        {
+            return 0.0;
+        }
+
+        bool foundA = layout.TryGetPosition(a, out float ax, out float ay);
+        bool foundB = layout.TryGetPosition(b, out float bx, out float by);
+
+        if (!foundA || !foundB)
+        {
+            return 1.0;
+        }
+
+        float dx = ax - bx;
+        float dy = ay - by;
+        float distance = MathF.Sqrt(dx * dx + dy * dy);
+
+        return distance / layout.MaxDistance;
+    }
 
     private static T CalculateCore<T>(
         ReadOnlySpan<char> source,
