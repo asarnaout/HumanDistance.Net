@@ -41,11 +41,4 @@ public readonly struct DistanceResult
     public double AverageKeyboardDistance =>
         Substitutions > 0 ? KeyboardDistanceSum / Substitutions : 0.0;
 
-    /// <summary>
-    /// Average keyboard proximity per substitution.
-    /// Range [0, 1] where 1 = all substitutions were adjacent keys, 0 = all were max distance apart.
-    /// Returns 0 when there are no substitutions.
-    /// </summary>
-    public double AverageKeyboardProximity =>
-        Substitutions > 0 ? 1.0 - AverageKeyboardDistance : 0.0;
 }

@@ -350,28 +350,11 @@ public class CalculatorTests
     }
 
     [Fact]
-    public void Calculate_AverageKeyboardProximity_IsOneMinusAverageDistance()
-    {
-        var result = Calculator.Calculate("a", "s");
-        Assert.Equal(1.0 - result.AverageKeyboardDistance, result.AverageKeyboardProximity);
-
-        // High proximity (adjacent keys)
-        Assert.True(result.AverageKeyboardProximity > 0.5,
-            $"Adjacent keys should have high proximity, got {result.AverageKeyboardProximity}");
-
-        // Low proximity (distant keys)
-        var distantResult = Calculator.Calculate("a", "p");
-        Assert.True(distantResult.AverageKeyboardProximity < result.AverageKeyboardProximity,
-            "Distant keys should have lower proximity than adjacent keys");
-    }
-
-    [Fact]
     public void Calculate_NoSubstitutions_AverageKeyboardDistanceIsZero()
     {
         var result = Calculator.Calculate("abc", "abcde"); // Pure insertions
         Assert.Equal(0, result.Substitutions);
         Assert.Equal(0.0, result.AverageKeyboardDistance);
-        Assert.Equal(0.0, result.AverageKeyboardProximity);
     }
 
     [Theory]
