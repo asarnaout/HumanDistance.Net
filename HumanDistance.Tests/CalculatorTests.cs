@@ -389,4 +389,239 @@ public class CalculatorTests
         Assert.Equal(azResult.KeyboardDistanceSum + bxResult.KeyboardDistanceSum,
             combinedResult.KeyboardDistanceSum, precision: 10);
     }
+
+    // TypoScore Tests
+
+    [Fact]
+    public void TypoScore_IdenticalStrings_ReturnsOne()
+    {
+        var result = Calculator.Calculate("password", "password");
+        Assert.Equal(1.0, result.TypoScore);
+    }
+
+    [Fact]
+    public void TypoScore_BothEmpty_ReturnsOne()
+    {
+        var result = Calculator.Calculate("", "");
+        Assert.Equal(1.0, result.TypoScore);
+    }
+
+    [Fact]
+    public void TypoScore_EmptyVsNonEmpty_ReturnsZero()
+    {
+        var result = Calculator.Calculate("", "test");
+        Assert.Equal(0.0, result.TypoScore);
+    }
+
+    [Fact]
+    public void TypoScore_SingleTransposition_HighScore()
+    {
+        // "passwrod" vs "password" - single transposition (o and r swapped)
+        var result = Calculator.Calculate("passwrod", "password");
+        Assert.True(result.TypoScore > 0.8, $"Single transposition should have high score, got {result.TypoScore}");
+    }
+
+    [Fact]
+    public void TypoScore_SingleAdjacentKeySubstitution_HighScore()
+    {
+        // "passwerd" vs "password" - o→e is an adjacent key typo
+        var result = Calculator.Calculate("passwerd", "password");
+        Assert.True(result.TypoScore > 0.7, $"Adjacent key substitution should have high score, got {result.TypoScore}");
+    }
+
+    [Fact]
+    public void TypoScore_SingleDistantKeySubstitution_LowerThanAdjacent()
+    {
+        // Compare adjacent vs distant substitution on QWERTY
+        // 'o' is adjacent to 'i' and 'p', but far from 'a'
+        var adjacentResult = Calculator.Calculate("passwird", "password"); // o→i (adjacent)
+        var distantResult = Calculator.Calculate("passward", "password");  // o→a (distant - different row)
+
+        Assert.True(distantResult.TypoScore < adjacentResult.TypoScore,
+            $"Distant key substitution ({distantResult.TypoScore}) should score lower than adjacent ({adjacentResult.TypoScore})");
+    }
+
+    [Fact]
+    public void TypoScore_CompletelyDifferent_LowScore()
+    {
+        var result = Calculator.Calculate("qwertyui", "password");
+        Assert.True(result.TypoScore < 0.3, $"Completely different strings should have low score, got {result.TypoScore}");
+    }
+
+    [Fact]
+    public void TypoScore_ScoreNeverNegative()
+    {
+        // Even with maximum penalties, score should not go negative
+        var result = Calculator.Calculate("aaaa", "zzzz");
+        Assert.True(result.TypoScore >= 0.0, $"Score should never be negative, got {result.TypoScore}");
+    }
+
+    [Fact]
+    public void TypoScore_WithLayout_WorksCorrectly()
+    {
+        var qwertyResult = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
+        var azertyResult = Calculator.Calculate("a", "s", KeyboardLayout.Azerty);
+
+        // Both should be valid scores
+        Assert.True(qwertyResult.TypoScore >= 0.0 && qwertyResult.TypoScore <= 1.0);
+        Assert.True(azertyResult.TypoScore >= 0.0 && azertyResult.TypoScore <= 1.0);
+    }
+
+    [Theory]
+    [InlineData(KeyboardLayout.Qwerty)]
+    [InlineData(KeyboardLayout.Azerty)]
+    [InlineData(KeyboardLayout.Qwertz)]
+    public void TypoScore_WithLayout_IdenticalStrings_ReturnsOne(KeyboardLayout layout)
+    {
+        var result = Calculator.Calculate("test", "test", layout);
+        Assert.Equal(1.0, result.TypoScore);
+    }
+
+    // IsLikelyTypo Tests
+
+    [Fact]
+    public void IsLikelyTypo_CommonTypo_ReturnsTrue()
+    {
+        // "teh" is a common typo for "the"
+        var result = Calculator.Calculate("teh", "the");
+        Assert.True(result.IsLikelyTypo(threshold: 0.6));
+    }
+
+    [Fact]
+    public void IsLikelyTypo_CompletelyDifferent_ReturnsFalse()
+    {
+        var result = Calculator.Calculate("hello", "world");
+        Assert.False(result.IsLikelyTypo(threshold: 0.8));
+    }
+
+    [Fact]
+    public void IsLikelyTypo_IdenticalStrings_ReturnsTrue()
+    {
+        var result = Calculator.Calculate("test", "test");
+        Assert.True(result.IsLikelyTypo());
+    }
+
+    [Fact]
+    public void IsLikelyTypo_DefaultThreshold_IsPractical()
+    {
+        // Single character transposition in 8-char word should pass default 0.8 threshold
+        var result = Calculator.Calculate("passwrod", "password");
+        Assert.True(result.IsLikelyTypo(), "Single transposition should be detected as typo with default threshold");
+    }
+
+    [Fact]
+    public void IsLikelyTypo_WithLayout_WorksCorrectly()
+    {
+        var result = Calculator.Calculate("teh", "the", KeyboardLayout.Qwerty);
+        Assert.True(result.IsLikelyTypo(threshold: 0.6));
+    }
+
+    [Theory]
+    [InlineData(KeyboardLayout.Qwerty)]
+    [InlineData(KeyboardLayout.Azerty)]
+    [InlineData(KeyboardLayout.Qwertz)]
+    public void IsLikelyTypo_WithLayout_IdenticalStrings_ReturnsTrue(KeyboardLayout layout)
+    {
+        var result = Calculator.Calculate("test", "test", layout);
+        Assert.True(result.IsLikelyTypo());
+    }
+
+    // BestMatch Tests
+
+    [Fact]
+    public void BestMatch_FindsCorrectMatch()
+    {
+        var candidates = new[] { "recipe", "receipt", "record" };
+        var result = Calculator.BestMatch("reciepe", candidates);
+        Assert.Equal("recipe", result);
+    }
+
+    [Fact]
+    public void BestMatch_NoMatchAboveThreshold_ReturnsNull()
+    {
+        var candidates = new[] { "abc", "def", "ghi" };
+        var result = Calculator.BestMatch("xyz", candidates);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void BestMatch_EmptyCandidates_ReturnsNull()
+    {
+        var candidates = Array.Empty<string>();
+        var result = Calculator.BestMatch("test", candidates);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void BestMatch_ExactMatchInCandidates_ReturnsIt()
+    {
+        var candidates = new[] { "apple", "banana", "cherry" };
+        var result = Calculator.BestMatch("banana", candidates);
+        Assert.Equal("banana", result);
+    }
+
+    [Fact]
+    public void BestMatch_WithCustomMinScore_Respected()
+    {
+        var candidates = new[] { "test", "tast", "tost" };
+
+        // With low minScore, should find a match
+        var lowThreshold = Calculator.BestMatch("txst", candidates, minScore: 0.3);
+        Assert.NotNull(lowThreshold);
+
+        // With very high minScore, might not find a match
+        var highThreshold = Calculator.BestMatch("txst", candidates, minScore: 0.99);
+        Assert.Null(highThreshold);
+    }
+
+    [Fact]
+    public void BestMatch_MultipleSimilarCandidates_ReturnsBest()
+    {
+        var candidates = new[] { "testing", "tasting", "tosting" };
+        var result = Calculator.BestMatch("testin", candidates);
+        Assert.Equal("testing", result);
+    }
+
+    [Fact]
+    public void BestMatch_WithLayout_WorksCorrectly()
+    {
+        var candidates = new[] { "recipe", "receipt", "record" };
+        var result = Calculator.BestMatch("reciepe", candidates, KeyboardLayout.Qwerty);
+        Assert.Equal("recipe", result);
+    }
+
+    [Theory]
+    [InlineData(KeyboardLayout.Qwerty)]
+    [InlineData(KeyboardLayout.Azerty)]
+    [InlineData(KeyboardLayout.Qwertz)]
+    public void BestMatch_WithLayout_ExactMatch_ReturnsIt(KeyboardLayout layout)
+    {
+        var candidates = new[] { "apple", "banana" };
+        var result = Calculator.BestMatch("apple", candidates, layout);
+        Assert.Equal("apple", result);
+    }
+
+    // Additional edge case tests
+
+    [Fact]
+    public void TypoScore_CaseInsensitive()
+    {
+        var result = Calculator.Calculate("TEST", "test");
+        Assert.Equal(1.0, result.TypoScore);
+    }
+
+    [Fact]
+    public void IsLikelyTypo_CaseInsensitive()
+    {
+        var result = Calculator.Calculate("PASSWORD", "password");
+        Assert.True(result.IsLikelyTypo());
+    }
+
+    [Fact]
+    public void BestMatch_CaseInsensitive()
+    {
+        var candidates = new[] { "Hello", "World" };
+        var result = Calculator.BestMatch("HELLO", candidates);
+        Assert.Equal("Hello", result);
+    }
 }

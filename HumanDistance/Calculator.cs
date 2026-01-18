@@ -43,15 +43,61 @@ public static class Calculator
     /// <exception cref="ArgumentOutOfRangeException">Thrown when an unknown keyboard layout is specified.</exception>
     public static DistanceResult Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, KeyboardLayout layout)
     {
-        KeyboardLayoutBase layoutInstance = layout switch
+        return CalculateInternal(source, target, GetLayoutInstance(layout));
+    }
+
+    /// <summary>
+    /// Finds the best matching candidate string for the given input.
+    /// </summary>
+    /// <param name="input">The input string (potentially containing typos).</param>
+    /// <param name="candidates">The collection of candidate strings to compare against.</param>
+    /// <param name="minScore">The minimum similarity score required for a match (default 0.5).</param>
+    /// <returns>The best matching candidate, or null if no candidate meets the minimum score.</returns>
+    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore = 0.5)
+    {
+        return BestMatchInternal(input, candidates, minScore, DefaultLayout);
+    }
+
+    /// <summary>
+    /// Finds the best matching candidate string for the given input using the specified keyboard layout.
+    /// </summary>
+    /// <param name="input">The input string (potentially containing typos).</param>
+    /// <param name="candidates">The collection of candidate strings to compare against.</param>
+    /// <param name="layout">The keyboard layout to use for calculating keyboard distances.</param>
+    /// <param name="minScore">The minimum similarity score required for a match (default 0.5).</param>
+    /// <returns>The best matching candidate, or null if no candidate meets the minimum score.</returns>
+    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, KeyboardLayout layout, double minScore = 0.5)
+    {
+        return BestMatchInternal(input, candidates, minScore, GetLayoutInstance(layout));
+    }
+
+    private static KeyboardLayoutBase GetLayoutInstance(KeyboardLayout layout)
+    {
+        return layout switch
         {
             KeyboardLayout.Qwerty => DefaultLayout,
             KeyboardLayout.Azerty => new AzertyLayout(),
             KeyboardLayout.Qwertz => new QwertzLayout(),
             _ => throw new ArgumentOutOfRangeException(nameof(layout), layout, "Unknown keyboard layout")
         };
+    }
 
-        return CalculateInternal(source, target, layoutInstance);
+    private static string? BestMatchInternal(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore, KeyboardLayoutBase layout)
+    {
+        string? best = null;
+        double bestScore = minScore;
+
+        foreach (var candidate in candidates)
+        {
+            var result = CalculateInternal(input, candidate, layout);
+            if (result.TypoScore > bestScore)
+            {
+                bestScore = result.TypoScore;
+                best = candidate;
+            }
+        }
+
+        return best;
     }
 
     private static double GetNormalizedKeyboardDistance(char a, char b, KeyboardLayoutBase layout)
@@ -84,6 +130,8 @@ public static class Calculator
         int sourceLen = source.Length;
         int targetLen = target.Length;
 
+        int maxLength = Math.Max(sourceLen, targetLen);
+
         // Handle edge cases
         if (sourceLen == 0 && targetLen == 0)
         {
@@ -95,7 +143,8 @@ public static class Calculator
             return new DistanceResult
             {
                 EditDistance = targetLen,
-                Insertions = targetLen
+                Insertions = targetLen,
+                MaxLength = maxLength
             };
         }
 
@@ -104,7 +153,8 @@ public static class Calculator
             return new DistanceResult
             {
                 EditDistance = sourceLen,
-                Deletions = sourceLen
+                Deletions = sourceLen,
+                MaxLength = maxLength
             };
         }
 
@@ -252,7 +302,8 @@ public static class Calculator
             Deletions = deletions,
             Substitutions = substitutions,
             Transpositions = transpositions,
-            KeyboardDistanceSum = keyboardDistanceSum
+            KeyboardDistanceSum = keyboardDistanceSum,
+            MaxLength = maxLength
         };
     }
 }
