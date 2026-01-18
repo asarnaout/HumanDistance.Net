@@ -52,10 +52,11 @@ public static class Calculator
     /// <param name="input">The input string (potentially containing typos).</param>
     /// <param name="candidates">The collection of candidate strings to compare against.</param>
     /// <param name="minScore">The minimum similarity score required for a match (default 0.5).</param>
+    /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
     /// <returns>The best matching candidate, or null if no candidate meets the minimum score.</returns>
-    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore = 0.5)
+    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore = 0.5, double keyboardPenaltyStrength = 0.5)
     {
-        return BestMatchInternal(input, candidates, minScore, DefaultLayout);
+        return BestMatchInternal(input, candidates, minScore, keyboardPenaltyStrength, DefaultLayout);
     }
 
     /// <summary>
@@ -65,10 +66,11 @@ public static class Calculator
     /// <param name="candidates">The collection of candidate strings to compare against.</param>
     /// <param name="layout">The keyboard layout to use for calculating keyboard distances.</param>
     /// <param name="minScore">The minimum similarity score required for a match (default 0.5).</param>
+    /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
     /// <returns>The best matching candidate, or null if no candidate meets the minimum score.</returns>
-    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, KeyboardLayout layout, double minScore = 0.5)
+    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, KeyboardLayout layout, double minScore = 0.5, double keyboardPenaltyStrength = 0.5)
     {
-        return BestMatchInternal(input, candidates, minScore, GetLayoutInstance(layout));
+        return BestMatchInternal(input, candidates, minScore, keyboardPenaltyStrength, GetLayoutInstance(layout));
     }
 
     private static KeyboardLayoutBase GetLayoutInstance(KeyboardLayout layout)
@@ -82,7 +84,7 @@ public static class Calculator
         };
     }
 
-    private static string? BestMatchInternal(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore, KeyboardLayoutBase layout)
+    private static string? BestMatchInternal(ReadOnlySpan<char> input, IEnumerable<string> candidates, double minScore, double keyboardPenaltyStrength, KeyboardLayoutBase layout)
     {
         string? best = null;
         double bestScore = minScore;
@@ -90,9 +92,10 @@ public static class Calculator
         foreach (var candidate in candidates)
         {
             var result = CalculateInternal(input, candidate, layout);
-            if (result.TypoScore > bestScore)
+            var score = result.TypoScore(keyboardPenaltyStrength);
+            if (score > bestScore)
             {
-                bestScore = result.TypoScore;
+                bestScore = score;
                 best = candidate;
             }
         }

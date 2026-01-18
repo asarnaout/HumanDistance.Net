@@ -44,30 +44,29 @@ public readonly struct DistanceResult
         Substitutions > 0 ? KeyboardDistanceSum / Substitutions : 0.0;
 
     /// <summary>
-    /// A similarity score from 0.0 to 1.0 where higher values indicate more similarity.
+    /// Calculates a similarity score from 0.0 to 1.0 where higher values indicate more similarity.
     /// Accounts for both edit distance and keyboard proximity of substituted characters.
     /// Identical strings return 1.0, completely different strings approach 0.0.
     /// </summary>
-    public double TypoScore
+    /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
+    /// <returns>A similarity score between 0.0 and 1.0.</returns>
+    public double TypoScore(double keyboardPenaltyStrength = 0.5)
     {
-        get
-        {
-            if (MaxLength == 0)
-            {
-                return 1.0;
-            }
+        if (MaxLength == 0) return 1.0;
 
-            double normalizedSimilarity = 1.0 - ((double)EditDistance / MaxLength);
-            double keyboardPenalty = KeyboardDistanceSum / MaxLength;
+        double editSimilarity = 1.0 - ((double)EditDistance / MaxLength);
+        if (Substitutions == 0) return editSimilarity;
 
-            return Math.Max(0.0, normalizedSimilarity - keyboardPenalty);
-        }
+        double keyboardFactor = 1.0 - (AverageKeyboardDistance * keyboardPenaltyStrength);
+        return editSimilarity * keyboardFactor;
     }
 
     /// <summary>
     /// Determines whether the compared strings are likely typos of each other.
     /// </summary>
     /// <param name="threshold">The minimum similarity score to consider a typo (default 0.8).</param>
+    /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
     /// <returns>True if TypoScore meets or exceeds the threshold.</returns>
-    public bool IsLikelyTypo(double threshold = 0.8) => TypoScore >= threshold;
+    public bool IsLikelyTypo(double threshold = 0.8, double keyboardPenaltyStrength = 0.5)
+        => TypoScore(keyboardPenaltyStrength) >= threshold;
 }

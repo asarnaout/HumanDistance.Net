@@ -396,21 +396,21 @@ public class CalculatorTests
     public void TypoScore_IdenticalStrings_ReturnsOne()
     {
         var result = Calculator.Calculate("password", "password");
-        Assert.Equal(1.0, result.TypoScore);
+        Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
     public void TypoScore_BothEmpty_ReturnsOne()
     {
         var result = Calculator.Calculate("", "");
-        Assert.Equal(1.0, result.TypoScore);
+        Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
     public void TypoScore_EmptyVsNonEmpty_ReturnsZero()
     {
         var result = Calculator.Calculate("", "test");
-        Assert.Equal(0.0, result.TypoScore);
+        Assert.Equal(0.0, result.TypoScore());
     }
 
     [Fact]
@@ -418,15 +418,15 @@ public class CalculatorTests
     {
         // "passwrod" vs "password" - single transposition (o and r swapped)
         var result = Calculator.Calculate("passwrod", "password");
-        Assert.True(result.TypoScore > 0.8, $"Single transposition should have high score, got {result.TypoScore}");
+        Assert.True(result.TypoScore() > 0.8, $"Single transposition should have high score, got {result.TypoScore()}");
     }
 
     [Fact]
     public void TypoScore_SingleAdjacentKeySubstitution_HighScore()
     {
-        // "passwerd" vs "password" - o→e is an adjacent key typo
-        var result = Calculator.Calculate("passwerd", "password");
-        Assert.True(result.TypoScore > 0.7, $"Adjacent key substitution should have high score, got {result.TypoScore}");
+        // "passwprd" vs "password" - o→p is a truly adjacent key typo on QWERTY
+        var result = Calculator.Calculate("passwprd", "password");
+        Assert.True(result.TypoScore() > 0.8, $"Adjacent key substitution should have high score, got {result.TypoScore()}");
     }
 
     [Fact]
@@ -434,18 +434,18 @@ public class CalculatorTests
     {
         // Compare adjacent vs distant substitution on QWERTY
         // 'o' is adjacent to 'i' and 'p', but far from 'a'
-        var adjacentResult = Calculator.Calculate("passwird", "password"); // o→i (adjacent)
+        var adjacentResult = Calculator.Calculate("passwprd", "password"); // o→p (adjacent)
         var distantResult = Calculator.Calculate("passward", "password");  // o→a (distant - different row)
 
-        Assert.True(distantResult.TypoScore < adjacentResult.TypoScore,
-            $"Distant key substitution ({distantResult.TypoScore}) should score lower than adjacent ({adjacentResult.TypoScore})");
+        Assert.True(distantResult.TypoScore() < adjacentResult.TypoScore(),
+            $"Distant key substitution ({distantResult.TypoScore()}) should score lower than adjacent ({adjacentResult.TypoScore()})");
     }
 
     [Fact]
     public void TypoScore_CompletelyDifferent_LowScore()
     {
         var result = Calculator.Calculate("qwertyui", "password");
-        Assert.True(result.TypoScore < 0.3, $"Completely different strings should have low score, got {result.TypoScore}");
+        Assert.True(result.TypoScore() < 0.3, $"Completely different strings should have low score, got {result.TypoScore()}");
     }
 
     [Fact]
@@ -453,7 +453,7 @@ public class CalculatorTests
     {
         // Even with maximum penalties, score should not go negative
         var result = Calculator.Calculate("aaaa", "zzzz");
-        Assert.True(result.TypoScore >= 0.0, $"Score should never be negative, got {result.TypoScore}");
+        Assert.True(result.TypoScore() >= 0.0, $"Score should never be negative, got {result.TypoScore()}");
     }
 
     [Fact]
@@ -463,8 +463,8 @@ public class CalculatorTests
         var azertyResult = Calculator.Calculate("a", "s", KeyboardLayout.Azerty);
 
         // Both should be valid scores
-        Assert.True(qwertyResult.TypoScore >= 0.0 && qwertyResult.TypoScore <= 1.0);
-        Assert.True(azertyResult.TypoScore >= 0.0 && azertyResult.TypoScore <= 1.0);
+        Assert.True(qwertyResult.TypoScore() >= 0.0 && qwertyResult.TypoScore() <= 1.0);
+        Assert.True(azertyResult.TypoScore() >= 0.0 && azertyResult.TypoScore() <= 1.0);
     }
 
     [Theory]
@@ -474,7 +474,7 @@ public class CalculatorTests
     public void TypoScore_WithLayout_IdenticalStrings_ReturnsOne(KeyboardLayout layout)
     {
         var result = Calculator.Calculate("test", "test", layout);
-        Assert.Equal(1.0, result.TypoScore);
+        Assert.Equal(1.0, result.TypoScore());
     }
 
     // IsLikelyTypo Tests
@@ -607,7 +607,7 @@ public class CalculatorTests
     public void TypoScore_CaseInsensitive()
     {
         var result = Calculator.Calculate("TEST", "test");
-        Assert.Equal(1.0, result.TypoScore);
+        Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
@@ -623,5 +623,97 @@ public class CalculatorTests
         var candidates = new[] { "Hello", "World" };
         var result = Calculator.BestMatch("HELLO", candidates);
         Assert.Equal("Hello", result);
+    }
+
+    // keyboardPenaltyStrength Tests
+
+    [Fact]
+    public void TypoScore_ZeroPenaltyStrength_IgnoresKeyboardDistance()
+    {
+        // With keyboardPenaltyStrength = 0, keyboard distance should have no effect
+        // Score should equal pure edit similarity
+        var result = Calculator.Calculate("a", "z"); // distant keys
+        double editSimilarity = 1.0 - ((double)result.EditDistance / 1);
+
+        Assert.Equal(editSimilarity, result.TypoScore(0.0));
+    }
+
+    [Fact]
+    public void TypoScore_FullPenaltyStrength_MaximizesKeyboardImpact()
+    {
+        // With keyboardPenaltyStrength = 1.0, keyboard distance should have maximum effect
+        var result = Calculator.Calculate("a", "p"); // distant keys
+        double editSimilarity = 1.0 - ((double)result.EditDistance / 1);
+        double keyboardFactor = 1.0 - (result.AverageKeyboardDistance * 1.0);
+        double expected = editSimilarity * keyboardFactor;
+
+        Assert.Equal(expected, result.TypoScore(1.0));
+    }
+
+    [Fact]
+    public void TypoScore_HigherPenaltyStrength_LowersScoreForDistantKeys()
+    {
+        // Distant key substitution - need longer string so edit similarity isn't 0
+        var result = Calculator.Calculate("password", "passward"); // o→a is distant
+
+        double lowPenalty = result.TypoScore(0.2);
+        double midPenalty = result.TypoScore(0.5);
+        double highPenalty = result.TypoScore(1.0);
+
+        Assert.True(highPenalty < midPenalty,
+            $"Higher penalty ({highPenalty}) should lower score compared to mid penalty ({midPenalty})");
+        Assert.True(midPenalty < lowPenalty,
+            $"Mid penalty ({midPenalty}) should lower score compared to low penalty ({lowPenalty})");
+    }
+
+    [Fact]
+    public void IsLikelyTypo_WithCustomPenaltyStrength_CanFlipResult()
+    {
+        // Distant key substitution: o→a spans multiple rows on QWERTY
+        var result = Calculator.Calculate("passward", "password");
+
+        // Calculate scores to find a threshold that demonstrates the effect
+        double lowPenaltyScore = result.TypoScore(0.0);
+        double highPenaltyScore = result.TypoScore(1.0);
+
+        // Use a threshold between the two scores
+        double threshold = (lowPenaltyScore + highPenaltyScore) / 2;
+
+        // With zero penalty, score is above threshold (likely typo)
+        Assert.True(result.IsLikelyTypo(threshold, keyboardPenaltyStrength: 0.0),
+            $"With zero penalty, score {lowPenaltyScore} should be >= threshold {threshold}");
+
+        // With full penalty, score is below threshold (not likely typo)
+        Assert.False(result.IsLikelyTypo(threshold, keyboardPenaltyStrength: 1.0),
+            $"With full penalty, score {highPenaltyScore} should be < threshold {threshold}");
+    }
+
+    [Fact]
+    public void BestMatch_WithCustomPenaltyStrength_AffectsSelection()
+    {
+        // Create candidates where keyboard distance differs:
+        // "tesr" vs "test" = r→t substitution (r and t are adjacent on QWERTY)
+        // "tesr" vs "tesq" = r→q substitution (r and q are more distant)
+        var candidates = new[] { "test", "tesq" };
+
+        // Both have edit distance 1, but "test" has closer keyboard distance
+        var testResult = Calculator.Calculate("tesr", "test");
+        var tesqResult = Calculator.Calculate("tesr", "tesq");
+
+        Assert.Equal(1, testResult.EditDistance);
+        Assert.Equal(1, tesqResult.EditDistance);
+        Assert.True(testResult.AverageKeyboardDistance < tesqResult.AverageKeyboardDistance,
+            "r→t should have smaller keyboard distance than r→q");
+
+        // With zero penalty, both score the same (pure edit distance)
+        Assert.Equal(testResult.TypoScore(0.0), tesqResult.TypoScore(0.0));
+
+        // With penalty applied, "test" should score higher due to closer keys
+        Assert.True(testResult.TypoScore(1.0) > tesqResult.TypoScore(1.0),
+            "With full penalty, adjacent key substitution should score higher");
+
+        // BestMatch should return "test" when keyboard penalty is applied
+        var match = Calculator.BestMatch("tesr", candidates, minScore: 0.5, keyboardPenaltyStrength: 1.0);
+        Assert.Equal("test", match);
     }
 }
