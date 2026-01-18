@@ -29,13 +29,13 @@ public readonly struct DistanceResult
 
     /// <summary>
     /// Sum of normalized keyboard distances for each substitution.
-    /// Each substitution contributes (distance / maxDistance), so range is [0, Substitutions].
+    /// Each substitution contributes a value from near 0.0 (adjacent keys) to 1.0 (distant or unmapped keys).
     /// </summary>
     public double KeyboardDistanceSum { get; init; }
 
     /// <summary>
     /// Average normalized keyboard distance per substitution.
-    /// Range [0, 1] where 0 = same key, 1 = maximum distance apart.
+    /// Low values indicate adjacent keys (likely typos), high values indicate distant or unmapped keys.
     /// Returns 0 when there are no substitutions.
     /// </summary>
     public double AverageKeyboardDistance =>
