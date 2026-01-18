@@ -163,29 +163,6 @@ public class CalculatorTests
     }
 
     [Theory]
-    [InlineData(KeyboardLayout.Qwerty, "", "", 0.0)]
-    [InlineData(KeyboardLayout.Qwerty, "a", "", 1.0)]
-    [InlineData(KeyboardLayout.Qwerty, "", "a", 1.0)]
-    [InlineData(KeyboardLayout.Qwerty, "abc", "abc", 0.0)]
-    [InlineData(KeyboardLayout.Qwerty, "Hello", "hello", 0.0)]
-    [InlineData(KeyboardLayout.Azerty, "", "", 0.0)]
-    [InlineData(KeyboardLayout.Azerty, "a", "", 1.0)]
-    [InlineData(KeyboardLayout.Azerty, "", "a", 1.0)]
-    [InlineData(KeyboardLayout.Azerty, "abc", "abc", 0.0)]
-    [InlineData(KeyboardLayout.Azerty, "Hello", "hello", 0.0)]
-    [InlineData(KeyboardLayout.Qwertz, "", "", 0.0)]
-    [InlineData(KeyboardLayout.Qwertz, "a", "", 1.0)]
-    [InlineData(KeyboardLayout.Qwertz, "", "a", 1.0)]
-    [InlineData(KeyboardLayout.Qwertz, "abc", "abc", 0.0)]
-    [InlineData(KeyboardLayout.Qwertz, "Hello", "hello", 0.0)]
-    public void Calculate_WithLayout_VariousInputs_ReturnsExpectedDistance(
-        KeyboardLayout layout, string source, string target, double expected)
-    {
-        double result = Calculator.Calculate(source, target, layout);
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
     [InlineData(KeyboardLayout.Qwerty, "a", "s", "a", "p")]
     [InlineData(KeyboardLayout.Qwerty, "q", "w", "q", "m")]
     [InlineData(KeyboardLayout.Azerty, "a", "z", "a", "p")]
@@ -225,5 +202,37 @@ public class CalculatorTests
         // Transposition is a timing error, not a key proximity error.
         // Cost is always 1 regardless of key positions.
         Assert.Equal(1.0, result);
+    }
+
+    [Theory]
+    [InlineData(KeyboardLayout.Qwerty, "", "", 0.0)]
+    [InlineData(KeyboardLayout.Qwerty, "a", "", 1.0)]
+    [InlineData(KeyboardLayout.Qwerty, "", "a", 1.0)]
+    [InlineData(KeyboardLayout.Qwerty, "abc", "abc", 0.0)]
+    [InlineData(KeyboardLayout.Qwerty, "Hello", "hello", 0.0)]
+    [InlineData(KeyboardLayout.Qwerty, "abc", "adc", 0.2147205770015717)]
+    [InlineData(KeyboardLayout.Qwerty, "a", "z", 0.08915787190198898)]
+    [InlineData(KeyboardLayout.Qwerty, "abc", "bad", 1.089157871901989)]
+    [InlineData(KeyboardLayout.Azerty, "", "", 0.0)]
+    [InlineData(KeyboardLayout.Azerty, "a", "", 1.0)]
+    [InlineData(KeyboardLayout.Azerty, "", "a", 1.0)]
+    [InlineData(KeyboardLayout.Azerty, "abc", "abc", 0.0)]
+    [InlineData(KeyboardLayout.Azerty, "Hello", "hello", 0.0)]
+    [InlineData(KeyboardLayout.Azerty, "abc", "adc", 0.22438186407089233)]
+    [InlineData(KeyboardLayout.Azerty, "a", "z", 0.0833333358168602)]
+    [InlineData(KeyboardLayout.Azerty, "abc", "bad", 1.0931695029139519)]
+    [InlineData(KeyboardLayout.Qwertz, "", "", 0.0)]
+    [InlineData(KeyboardLayout.Qwertz, "a", "", 1.0)]
+    [InlineData(KeyboardLayout.Qwertz, "", "a", 1.0)]
+    [InlineData(KeyboardLayout.Qwertz, "abc", "abc", 0.0)]
+    [InlineData(KeyboardLayout.Qwertz, "Hello", "hello", 0.0)]
+    [InlineData(KeyboardLayout.Qwertz, "abc", "adc", 0.22438186407089233)]
+    [InlineData(KeyboardLayout.Qwertz, "a", "z", 0.40451017022132874)]
+    [InlineData(KeyboardLayout.Qwertz, "abc", "bad", 1.0931695029139519)]
+    public void Calculate_WithLayout_VariousInputs_ReturnsExpectedDistance(
+        KeyboardLayout layout, string source, string target, double expected)
+    {
+        double result = Calculator.Calculate(source, target, layout);
+        Assert.Equal(expected, result, precision: 10);
     }
 }
