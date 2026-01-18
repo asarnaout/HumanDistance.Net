@@ -2,7 +2,7 @@
 
 **A smarter string distance library that understands how humans actually make typos.**
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -213,33 +213,33 @@ dotnet run -c Release --project HumanDistance.Benchmarks
 
 ### Results
 
-*13th Gen Intel Core i7-13620H, .NET 8.0.8, Windows 11*
+*13th Gen Intel Core i7-13620H, .NET 10.0.2*
 
 **Distance.Calculate** (64-character strings):
 
 | Layout | Mean | Allocated |
 |--------|-----:|----------:|
-| QWERTY (default) | 17.4 μs | 20.7 KB |
-| Custom | 17.1 μs | 20.7 KB |
-| AZERTY | 18.5 μs | 25.7 KB |
-| QWERTZ | 18.8 μs | 25.7 KB |
+| QWERTY (default) | 14.9 μs | 20.7 KB |
+| Custom | 15.4 μs | 20.7 KB |
+| AZERTY | 16.8 μs | 25.7 KB |
+| QWERTZ | 17.0 μs | 25.7 KB |
 
 **Scaling by string length:**
 
 | Length | Mean | Allocated |
 |-------:|--------:|----------:|
-| 4 | 136 ns | 216 B |
+| 4 | 142 ns | 216 B |
 | 16 | 1.2 μs | 1.5 KB |
-| 64 | 17.2 μs | 20.7 KB |
-| 256 | 391 μs | 323 KB |
+| 64 | 15.1 μs | 20.7 KB |
+| 256 | 359 μs | 323 KB |
 
 **Distance.BestMatch** (12-character input):
 
 | Candidates | Mean |
 |-----------:|--------:|
-| 10 | 7.5 μs |
-| 100 | 80 μs |
-| 1000 | 860 μs |
+| 10 | 7.3 μs |
+| 100 | 70 μs |
+| 1000 | 786 μs |
 
 ## License
 
