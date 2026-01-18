@@ -203,6 +203,22 @@ For each substitution, it also calculates the **physical distance** between the 
 
 The result: typos that humans commonly make (hitting an adjacent key) are scored as more similar than random character replacements.
 
+## Benchmarks
+
+Run the BenchmarkDotNet suite with:
+
+```bash
+dotnet run -c Release --project HumanDistance.Benchmarks
+```
+
+### Results
+
+Benchmark results are recorded here after running the suite:
+
+```
+Pending — run the benchmark command above and paste the summary output here.
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
