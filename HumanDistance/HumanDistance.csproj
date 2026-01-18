@@ -1,10 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>HumanDistance</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Ahmed Arnaout</Authors>
+    <Company>Ahmed Arnaout</Company>
+    <Description>A smarter string distance library that understands how humans actually make typos. Combines Damerau-Levenshtein edit distance with keyboard proximity awareness to identify typos the way humans actually make them.</Description>
+    <PackageTags>string-distance;levenshtein;damerau-levenshtein;typo;typo-detection;fuzzy-matching;keyboard;edit-distance;spell-check</PackageTags>
+    <PackageProjectUrl>https://github.com/asarnaout/HumanDistance.Net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/asarnaout/HumanDistance.Net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright (c) 2026 Ahmed Arnaout</Copyright>
+
+    <!-- Package settings -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
