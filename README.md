@@ -117,7 +117,7 @@ The result struct containing all distance metrics.
 | Method | Description |
 |--------|-------------|
 | `TypoScore(keyboardPenaltyStrength)` | Similarity score from 0.0 to 1.0, accounting for keyboard proximity |
-| `IsLikelyTypo(threshold, keyboardPenaltyStrength)` | Returns `true` if `TypoScore` meets the threshold |
+| `IsLikelyTypo(threshold, keyboardPenaltyStrength)` | Returns `true` if `TypoScore` meets the threshold (uses adaptive threshold for short strings) |
 
 ### Keyboard Layouts
 
@@ -159,6 +159,30 @@ result.TypoScore(1.0);  // 0.74 - maximum keyboard penalty
 - `0.0` — Keyboard distance ignored; pure edit-distance-based similarity
 - `0.5` — Default; balanced consideration of edit distance and keyboard proximity
 - `1.0` — Maximum penalty for distant key substitutions
+
+### Adaptive Threshold for Short Strings
+
+`IsLikelyTypo()` automatically adjusts its threshold for short strings. This ensures single-character typos are detectable regardless of word length:
+
+```csharp
+// Without adaptive threshold, short word typos would fail at 0.8
+// because 1 edit in 3 chars = 0.667 score, 1 edit in 4 chars = 0.75 score
+
+var result = Distance.Calculate("git", "gti");  // 3-char transposition
+result.IsLikelyTypo();  // true — adaptive threshold (0.60) used
+
+var result = Distance.Calculate("test", "tset"); // 4-char transposition
+result.IsLikelyTypo();  // true — adaptive threshold (0.70) used
+```
+
+| String Length | Adaptive Threshold |
+|--------------:|-------------------:|
+| ≤ 3 | 0.60 |
+| 4 | 0.70 |
+| 5 | 0.75 |
+| ≥ 6 | 0.80 (base) |
+
+The adaptive threshold is always the more lenient of the base threshold and the length-based threshold.
 
 ## Use Cases
 

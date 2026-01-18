@@ -528,6 +528,119 @@ public class DistanceTests
         Assert.True(result.IsLikelyTypo());
     }
 
+    // Adaptive Threshold Tests
+
+    [Theory]
+    [InlineData("git", "gti")]      // 3-char transposition
+    [InlineData("npm", "nmp")]      // 3-char transposition
+    [InlineData("the", "teh")]      // 3-char transposition
+    public void IsLikelyTypo_AdaptiveThreshold_ThreeCharTypos_DetectedWithDefaultThreshold(string original, string typo)
+    {
+        var result = Distance.Calculate(original, typo);
+
+        // These would fail with a fixed 0.8 threshold (score ~0.667)
+        // but should pass with adaptive threshold (0.60 for 3-char words)
+        Assert.True(result.IsLikelyTypo(),
+            $"'{original}'→'{typo}' should be detected as typo (score: {result.TypoScore():F3})");
+    }
+
+    [Theory]
+    [InlineData("test", "tset")]    // 4-char transposition
+    [InlineData("push", "psuh")]    // 4-char transposition
+    [InlineData("pull", "plul")]    // 4-char transposition
+    public void IsLikelyTypo_AdaptiveThreshold_FourCharTypos_DetectedWithDefaultThreshold(string original, string typo)
+    {
+        var result = Distance.Calculate(original, typo);
+
+        // These would fail with a fixed 0.8 threshold (score = 0.75)
+        // but should pass with adaptive threshold (0.70 for 4-char words)
+        Assert.True(result.IsLikelyTypo(),
+            $"'{original}'→'{typo}' should be detected as typo (score: {result.TypoScore():F3})");
+    }
+
+    [Theory]
+    [InlineData("hello", "helo")]   // 5-char deletion
+    [InlineData("build", "biuld")]  // 5-char transposition
+    public void IsLikelyTypo_AdaptiveThreshold_FiveCharTypos_DetectedWithDefaultThreshold(string original, string typo)
+    {
+        var result = Distance.Calculate(original, typo);
+
+        // Score = 0.80, threshold adapts to 0.75 for 5-char words
+        Assert.True(result.IsLikelyTypo(),
+            $"'{original}'→'{typo}' should be detected as typo (score: {result.TypoScore():F3})");
+    }
+
+    [Theory]
+    [InlineData("go", "to")]        // Different 2-char words
+    [InlineData("is", "as")]        // Different 2-char words
+    [InlineData("on", "in")]        // Different 2-char words
+    public void IsLikelyTypo_AdaptiveThreshold_TwoCharDifferentWords_NotDetected(string word1, string word2)
+    {
+        var result = Distance.Calculate(word1, word2);
+
+        // Even with adaptive threshold, completely different short words
+        // should not be considered typos (keyboard distance penalty helps here)
+        Assert.False(result.IsLikelyTypo(),
+            $"'{word1}'↔'{word2}' should NOT be detected as typo (score: {result.TypoScore():F3})");
+    }
+
+    [Fact]
+    public void IsLikelyTypo_AdaptiveThreshold_LongerWords_UseBaseThreshold()
+    {
+        // For 6+ char words, the base threshold (0.8) should be used
+        var result = Distance.Calculate("status", "stauts");
+
+        // Score ≈ 0.833, above 0.8 threshold - should pass
+        Assert.True(result.IsLikelyTypo());
+
+        // Now test a 6-char word with a distant key substitution
+        // This creates a score below 0.80 due to keyboard penalty
+        var result2 = Distance.Calculate("abcdef", "xbcdef"); // a→x is distant on QWERTY
+
+        // Score should be below 0.80 due to keyboard distance penalty
+        Assert.True(result2.TypoScore() < 0.80,
+            $"Expected score below 0.80 for distant key substitution, got {result2.TypoScore():F3}");
+
+        // This should FAIL because 6+ char words use the base 0.80 threshold
+        // (no adaptive threshold benefit like shorter words get)
+        Assert.False(result2.IsLikelyTypo(),
+            $"6-char word with score {result2.TypoScore():F3} should fail at 0.80 threshold");
+
+        // Contrast: a 4-char word with 1 edit passes because of adaptive threshold (0.70)
+        // Using transposition which has no keyboard penalty, score = 0.75
+        var result3 = Distance.Calculate("test", "tset"); // transposition
+        Assert.Equal(0.75, result3.TypoScore(), precision: 2);
+        Assert.True(result3.IsLikelyTypo(),
+            $"4-char word with score {result3.TypoScore():F3} should pass with adaptive threshold 0.70");
+    }
+
+    [Fact]
+    public void IsLikelyTypo_AdaptiveThreshold_ExplicitLowThreshold_StillRespected()
+    {
+        // If user explicitly sets a low threshold, it should be used
+        var result = Distance.Calculate("hello", "world");
+
+        // Very different words, low score
+        Assert.False(result.IsLikelyTypo(threshold: 0.5),
+            "Explicit threshold of 0.5 should still reject very different strings");
+    }
+
+    [Fact]
+    public void IsLikelyTypo_AdaptiveThreshold_ExplicitHighThreshold_OverridesAdaptive()
+    {
+        // If user sets threshold higher than adaptive would suggest,
+        // the adaptive (more lenient) threshold is used
+        var result = Distance.Calculate("git", "gti");
+
+        // With default threshold 0.8, adaptive gives 0.60 for 3-char words
+        Assert.True(result.IsLikelyTypo(threshold: 0.8),
+            "Adaptive threshold should make 3-char typo detectable even with 0.8 base threshold");
+
+        // But if user sets threshold to 0.9, adaptive still uses 0.60 (more lenient)
+        Assert.True(result.IsLikelyTypo(threshold: 0.9),
+            "Adaptive threshold (0.60) should override even stricter base threshold (0.9)");
+    }
+
     // BestMatch Tests
 
     [Fact]

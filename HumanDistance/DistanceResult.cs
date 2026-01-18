@@ -63,10 +63,36 @@ public readonly struct DistanceResult
 
     /// <summary>
     /// Determines whether the compared strings are likely typos of each other.
+    /// The threshold is automatically adjusted for short strings to ensure single-character
+    /// typos are detectable regardless of word length.
     /// </summary>
-    /// <param name="threshold">The minimum similarity score to consider a typo (default 0.8).</param>
+    /// <param name="threshold">The base minimum similarity score to consider a typo (default 0.8).
+    /// For short strings, an adaptive threshold may be used if it's more lenient.</param>
     /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
-    /// <returns>True if TypoScore meets or exceeds the threshold.</returns>
+    /// <returns>True if TypoScore meets or exceeds the effective threshold.</returns>
     public bool IsLikelyTypo(double threshold = 0.8, double keyboardPenaltyStrength = 0.5)
-        => TypoScore(keyboardPenaltyStrength) >= threshold;
+    {
+        double effectiveThreshold = GetAdaptiveThreshold(MaxLength, threshold);
+        return TypoScore(keyboardPenaltyStrength) >= effectiveThreshold;
+    }
+
+    /// <summary>
+    /// Calculates an adaptive threshold based on string length.
+    /// Shorter strings get a more lenient threshold to ensure single-character typos are detectable.
+    /// </summary>
+    private static double GetAdaptiveThreshold(int maxLength, double baseThreshold)
+    {
+        // For short strings, a single edit is a large percentage of the string.
+        // Adjust the threshold to ensure single-edit typos can be detected.
+        double adaptiveThreshold = maxLength switch
+        {
+            <= 3 => 0.60,
+            4 => 0.70,
+            5 => 0.75,
+            _ => baseThreshold
+        };
+
+        // Use the more lenient of the two thresholds
+        return Math.Min(baseThreshold, adaptiveThreshold);
+    }
 }
