@@ -486,14 +486,14 @@ public class DistanceTests
     {
         // "teh" is a common typo for "the"
         var result = Distance.Calculate("teh", "the");
-        Assert.True(result.IsLikelyTypo(threshold: 0.6));
+        Assert.True(result.IsLikelyTypo());
     }
 
     [Fact]
     public void IsLikelyTypo_CompletelyDifferent_ReturnsFalse()
     {
         var result = Distance.Calculate("hello", "world");
-        Assert.False(result.IsLikelyTypo(threshold: 0.8));
+        Assert.False(result.IsLikelyTypo());
     }
 
     [Fact]
@@ -515,7 +515,7 @@ public class DistanceTests
     public void IsLikelyTypo_WithLayout_WorksCorrectly()
     {
         var result = Distance.Calculate("teh", "the", KeyboardLayout.Qwerty);
-        Assert.True(result.IsLikelyTypo(threshold: 0.6));
+        Assert.True(result.IsLikelyTypo());
     }
 
     [Theory]
@@ -615,30 +615,34 @@ public class DistanceTests
     }
 
     [Fact]
-    public void IsLikelyTypo_AdaptiveThreshold_ExplicitLowThreshold_StillRespected()
+    public void TypoScore_CanBeUsedForCustomThresholds()
     {
-        // If user explicitly sets a low threshold, it should be used
+        // For custom threshold logic, use TypoScore() directly
         var result = Distance.Calculate("hello", "world");
 
-        // Very different words, low score
-        Assert.False(result.IsLikelyTypo(threshold: 0.5),
-            "Explicit threshold of 0.5 should still reject very different strings");
+        // Very different words have a low score
+        Assert.True(result.TypoScore() < 0.3);
+
+        // Custom threshold comparison
+        Assert.False(result.TypoScore() >= 0.5,
+            "TypoScore can be compared against any custom threshold");
     }
 
     [Fact]
-    public void IsLikelyTypo_AdaptiveThreshold_ExplicitHighThreshold_OverridesAdaptive()
+    public void IsLikelyTypo_UsesAdaptiveThresholdAutomatically()
     {
-        // If user sets threshold higher than adaptive would suggest,
-        // the adaptive (more lenient) threshold is used
+        // IsLikelyTypo uses adaptive thresholds automatically
+        // No need to pass a threshold parameter
         var result = Distance.Calculate("git", "gti");
 
-        // With default threshold 0.8, adaptive gives 0.60 for 3-char words
-        Assert.True(result.IsLikelyTypo(threshold: 0.8),
-            "Adaptive threshold should make 3-char typo detectable even with 0.8 base threshold");
+        // 3-char word with transposition: score = 0.667
+        // Adaptive threshold for 3-char words is 0.60
+        Assert.True(result.IsLikelyTypo(),
+            "3-char typo should be detected with adaptive threshold");
 
-        // But if user sets threshold to 0.9, adaptive still uses 0.60 (more lenient)
-        Assert.True(result.IsLikelyTypo(threshold: 0.9),
-            "Adaptive threshold (0.60) should override even stricter base threshold (0.9)");
+        // Verify the score is what we expect
+        Assert.True(result.TypoScore() >= 0.60);
+        Assert.True(result.TypoScore() < 0.80);
     }
 
     // BestMatch Tests
@@ -782,25 +786,31 @@ public class DistanceTests
     }
 
     [Fact]
-    public void IsLikelyTypo_WithCustomPenaltyStrength_CanFlipResult()
+    public void IsLikelyTypo_WithCustomPenaltyStrength_AffectsResult()
     {
         // Distant key substitution: o→a spans multiple rows on QWERTY
+        // For an 8-char word, adaptive threshold is 0.80
         var result = Distance.Calculate("passward", "password");
 
-        // Calculate scores to find a threshold that demonstrates the effect
-        double lowPenaltyScore = result.TypoScore(0.0);
-        double highPenaltyScore = result.TypoScore(1.0);
+        // Verify keyboard penalty affects the score
+        double lowPenaltyScore = result.TypoScore(0.0);   // ignore keyboard distance
+        double highPenaltyScore = result.TypoScore(1.0);  // max keyboard penalty
 
-        // Use a threshold between the two scores
-        double threshold = (lowPenaltyScore + highPenaltyScore) / 2;
+        Assert.True(lowPenaltyScore > highPenaltyScore,
+            $"Low penalty score ({lowPenaltyScore:F3}) should be higher than high penalty score ({highPenaltyScore:F3})");
 
-        // With zero penalty, score is above threshold (likely typo)
-        Assert.True(result.IsLikelyTypo(threshold, keyboardPenaltyStrength: 0.0),
-            $"With zero penalty, score {lowPenaltyScore} should be >= threshold {threshold}");
+        // With zero keyboard penalty, should pass (score ~0.875)
+        Assert.True(result.IsLikelyTypo(keyboardPenaltyStrength: 0.0),
+            $"With zero penalty, score {lowPenaltyScore:F3} should pass");
 
-        // With full penalty, score is below threshold (not likely typo)
-        Assert.False(result.IsLikelyTypo(threshold, keyboardPenaltyStrength: 1.0),
-            $"With full penalty, score {highPenaltyScore} should be < threshold {threshold}");
+        // With maximum keyboard penalty, may fail if score drops below 0.80
+        // The result depends on keyboard distance of o→a
+        double threshold = 0.80;
+        if (highPenaltyScore < threshold)
+        {
+            Assert.False(result.IsLikelyTypo(keyboardPenaltyStrength: 1.0),
+                $"With full penalty, score {highPenaltyScore:F3} should fail at threshold {threshold}");
+        }
     }
 
     [Fact]

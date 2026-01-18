@@ -117,7 +117,7 @@ The result struct containing all distance metrics.
 | Method | Description |
 |--------|-------------|
 | `TypoScore(keyboardPenaltyStrength)` | Similarity score from 0.0 to 1.0, accounting for keyboard proximity |
-| `IsLikelyTypo(threshold, keyboardPenaltyStrength)` | Returns `true` if `TypoScore` meets the threshold (uses adaptive threshold for short strings) |
+| `IsLikelyTypo(keyboardPenaltyStrength)` | Returns `true` if `TypoScore` meets the adaptive threshold for the string length |
 
 ### Keyboard Layouts
 
@@ -162,27 +162,31 @@ result.TypoScore(1.0);  // 0.74 - maximum keyboard penalty
 
 ### Adaptive Threshold for Short Strings
 
-`IsLikelyTypo()` automatically adjusts its threshold for short strings. This ensures single-character typos are detectable regardless of word length:
+`IsLikelyTypo()` automatically adjusts its threshold based on string length. This ensures single-character typos are detectable regardless of word length:
 
 ```csharp
-// Without adaptive threshold, short word typos would fail at 0.8
-// because 1 edit in 3 chars = 0.667 score, 1 edit in 4 chars = 0.75 score
+// Short word typos are detected because the threshold adapts to the string length
 
 var result = Distance.Calculate("git", "gti");  // 3-char transposition
-result.IsLikelyTypo();  // true — adaptive threshold (0.60) used
+result.IsLikelyTypo();  // true — threshold 0.60 for 3-char strings
 
 var result = Distance.Calculate("test", "tset"); // 4-char transposition
-result.IsLikelyTypo();  // true — adaptive threshold (0.70) used
+result.IsLikelyTypo();  // true — threshold 0.70 for 4-char strings
 ```
 
-| String Length | Adaptive Threshold |
-|--------------:|-------------------:|
+| String Length | Threshold |
+|--------------:|----------:|
 | ≤ 3 | 0.60 |
 | 4 | 0.70 |
 | 5 | 0.75 |
-| ≥ 6 | 0.80 (base) |
+| ≥ 6 | 0.80 |
 
-The adaptive threshold is always the more lenient of the base threshold and the length-based threshold.
+For custom threshold logic, use `TypoScore()` directly:
+
+```csharp
+if (result.TypoScore() >= 0.90)  // your own threshold
+    Console.WriteLine("Very likely a typo");
+```
 
 ## Use Cases
 
@@ -203,7 +207,7 @@ if (didYouMean != null)
 ### Form Validation
 ```csharp
 var result = Distance.Calculate(confirmedEmail, originalEmail);
-if (!result.IsLikelyTypo(threshold: 0.95))
+if (result.TypoScore() < 0.95)  // use TypoScore() for custom thresholds
     ShowWarning("The emails don't match. Did you make a typo?");
 ```
 
