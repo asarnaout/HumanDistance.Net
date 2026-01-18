@@ -47,6 +47,19 @@ public static class Distance
     }
 
     /// <summary>
+    /// Calculates the Damerau-Levenshtein distance between two strings using a custom keyboard layout
+    /// for keyboard proximity metrics.
+    /// </summary>
+    /// <param name="source">The source string.</param>
+    /// <param name="target">The target string.</param>
+    /// <param name="layout">The custom keyboard layout to use for calculating keyboard distances.</param>
+    /// <returns>A <see cref="DistanceResult"/> containing edit distance and operation counts.</returns>
+    public static DistanceResult Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, KeyboardLayoutBase layout)
+    {
+        return CalculateInternal(source, target, layout);
+    }
+
+    /// <summary>
     /// Finds the best matching candidate string for the given input.
     /// </summary>
     /// <param name="input">The input string (potentially containing typos).</param>
@@ -71,6 +84,20 @@ public static class Distance
     public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, KeyboardLayout layout, double minScore = 0.5, double keyboardPenaltyStrength = 0.5)
     {
         return BestMatchInternal(input, candidates, minScore, keyboardPenaltyStrength, GetLayoutInstance(layout));
+    }
+
+    /// <summary>
+    /// Finds the best matching candidate string for the given input using a custom keyboard layout.
+    /// </summary>
+    /// <param name="input">The input string (potentially containing typos).</param>
+    /// <param name="candidates">The collection of candidate strings to compare against.</param>
+    /// <param name="layout">The custom keyboard layout to use for calculating keyboard distances.</param>
+    /// <param name="minScore">The minimum similarity score required for a match (default 0.5).</param>
+    /// <param name="keyboardPenaltyStrength">How much keyboard distance affects the score (0.0 = ignore keyboard, 1.0 = maximum penalty). Default is 0.5.</param>
+    /// <returns>The best matching candidate, or null if no candidate meets the minimum score.</returns>
+    public static string? BestMatch(ReadOnlySpan<char> input, IEnumerable<string> candidates, KeyboardLayoutBase layout, double minScore = 0.5, double keyboardPenaltyStrength = 0.5)
+    {
+        return BestMatchInternal(input, candidates, minScore, keyboardPenaltyStrength, layout);
     }
 
     private static KeyboardLayoutBase GetLayoutInstance(KeyboardLayout layout)

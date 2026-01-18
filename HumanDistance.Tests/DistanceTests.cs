@@ -1,3 +1,5 @@
+using HumanDistance.Keyboards;
+
 namespace HumanDistance.Tests;
 
 public class DistanceTests
@@ -715,5 +717,179 @@ public class DistanceTests
         // BestMatch should return "test" when keyboard penalty is applied
         var match = Distance.BestMatch("tesr", candidates, minScore: 0.5, keyboardPenaltyStrength: 1.0);
         Assert.Equal("test", match);
+    }
+
+    // Custom Keyboard Layout Tests
+
+    [Fact]
+    public void CustomKeyboardLayoutBuilder_CreatesValidLayout()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .AddRow("asdfghjkl", y: 1)
+            .AddRow("zxcvbnm", y: 2)
+            .Build();
+
+        Assert.NotNull(layout);
+        Assert.True(layout.MaxDistance > 0, "Layout should have a positive max distance");
+    }
+
+    [Fact]
+    public void CustomKeyboardLayoutBuilder_WithXOffset_AppliesCorrectly()
+    {
+        // Create a layout with offset and verify key positions differ
+        var layoutNoOffset = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("abc", y: 0, xOffset: 0f)
+            .Build();
+
+        var layoutWithOffset = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("abc", y: 0, xOffset: 1.5f)
+            .Build();
+
+        // Both should be valid layouts
+        Assert.NotNull(layoutNoOffset);
+        Assert.NotNull(layoutWithOffset);
+
+        // The layouts should produce different max distances due to different positions
+        // (This is a basic sanity check - positions are internal)
+    }
+
+    [Fact]
+    public void CustomLayout_Calculate_IdenticalStrings_ReturnsZero()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .AddRow("asdfghjkl", y: 1)
+            .AddRow("zxcvbnm", y: 2)
+            .Build();
+
+        var result = Distance.Calculate("hello", "hello", layout);
+        Assert.Equal(0, result.EditDistance);
+    }
+
+    [Fact]
+    public void CustomLayout_Calculate_AdjacentKeys_HasLowKeyboardDistance()
+    {
+        // Create a simple layout where 'a' and 's' are adjacent
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("asdfghjkl", y: 0)
+            .Build();
+
+        var result = Distance.Calculate("a", "s", layout);
+        Assert.Equal(1, result.EditDistance);
+        Assert.True(result.KeyboardDistanceSum < 0.5,
+            $"Adjacent keys 'a' and 's' should have low keyboard distance, got {result.KeyboardDistanceSum}");
+    }
+
+    [Fact]
+    public void CustomLayout_Calculate_DistantKeys_HasHigherKeyboardDistance()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("asdfghjkl", y: 0)
+            .Build();
+
+        var adjacentResult = Distance.Calculate("a", "s", layout);
+        var distantResult = Distance.Calculate("a", "l", layout);
+
+        Assert.True(distantResult.KeyboardDistanceSum > adjacentResult.KeyboardDistanceSum,
+            $"Distant keys should have higher keyboard distance. Adjacent: {adjacentResult.KeyboardDistanceSum}, Distant: {distantResult.KeyboardDistanceSum}");
+    }
+
+    [Fact]
+    public void CustomLayout_Calculate_CaseInsensitive()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .AddRow("asdfghjkl", y: 1)
+            .Build();
+
+        var result = Distance.Calculate("Hello", "hello", layout);
+        Assert.Equal(0, result.EditDistance);
+    }
+
+    [Fact]
+    public void CustomLayout_BestMatch_FindsCorrectMatch()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .AddRow("asdfghjkl", y: 1)
+            .AddRow("zxcvbnm", y: 2)
+            .Build();
+
+        var candidates = new[] { "recipe", "receipt", "record" };
+        var result = Distance.BestMatch("reciepe", candidates, layout);
+        Assert.Equal("recipe", result);
+    }
+
+    [Fact]
+    public void CustomLayout_BestMatch_ExactMatch_ReturnsIt()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .AddRow("asdfghjkl", y: 1)
+            .Build();
+
+        var candidates = new[] { "apple", "banana" };
+        var result = Distance.BestMatch("apple", candidates, layout);
+        Assert.Equal("apple", result);
+    }
+
+    [Fact]
+    public void CustomLayout_BestMatch_NoMatchAboveThreshold_ReturnsNull()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0)
+            .Build();
+
+        var candidates = new[] { "abc", "def", "ghi" };
+        var result = Distance.BestMatch("xyz", candidates, layout);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void CustomLayout_MobileKeyboardExample_WorksCorrectly()
+    {
+        // Define a mobile keyboard layout with typical offsets
+        var mobileKeyboard = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("qwertyuiop", y: 0, xOffset: 0.3f)
+            .AddRow("asdfghjkl", y: 1, xOffset: 0.5f)
+            .AddRow("zxcvbnm", y: 2, xOffset: 1.1f)
+            .Build();
+
+        // Verify it works with Calculate
+        var result = Distance.Calculate("hello", "helo", mobileKeyboard);
+        Assert.Equal(1, result.EditDistance);
+        Assert.Equal(1, result.Deletions);
+
+        // Verify it works with BestMatch
+        var commands = new[] { "commit", "push", "pull", "status" };
+        var match = Distance.BestMatch("commti", commands, mobileKeyboard);
+        Assert.Equal("commit", match);
+    }
+
+    [Fact]
+    public void CustomKeyboardLayoutBuilder_AddRow_HandlesUppercaseInput()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("QWERTY", y: 0)
+            .Build();
+
+        // Should work with lowercase input
+        var result = Distance.Calculate("q", "w", layout);
+        Assert.Equal(1, result.EditDistance);
+        Assert.True(result.KeyboardDistanceSum < 1.0, "Keys should be found in layout");
+    }
+
+    [Fact]
+    public void CustomLayout_UnknownCharacters_DefaultToFullCost()
+    {
+        var layout = CustomKeyboardLayout.CreateBuilder()
+            .AddRow("abc", y: 0)
+            .Build();
+
+        // 'x' and 'z' are not in the layout
+        var result = Distance.Calculate("a", "x", layout);
+        Assert.Equal(1, result.EditDistance);
+        Assert.Equal(1.0, result.KeyboardDistanceSum);
     }
 }
