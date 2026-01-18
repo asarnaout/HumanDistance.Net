@@ -4,28 +4,23 @@ namespace HumanDistance;
 
 public static class Calculator
 {
-    public static int Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target)
+    private static readonly QwertyLayout DefaultLayout = new();
+
+    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target)
     {
-        return DamerauLevenshtein.Calculate(source, target);
+        return DamerauLevenshtein.Calculate(source, target, DefaultLayout);
     }
 
-    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, CalculatorOptions options)
+    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, KeyboardLayout layout)
     {
-        ArgumentNullException.ThrowIfNull(options);
-
-        if (!options.UseKeyboardDistance)
+        KeyboardLayoutBase layoutInstance = layout switch
         {
-            return DamerauLevenshtein.Calculate(source, target);
-        }
-
-        KeyboardLayoutBase layout = options.Layout switch
-        {
-            KeyboardLayout.Qwerty => new QwertyLayout(),
+            KeyboardLayout.Qwerty => DefaultLayout,
             KeyboardLayout.Azerty => new AzertyLayout(),
             KeyboardLayout.Qwertz => new QwertzLayout(),
-            _ => throw new ArgumentOutOfRangeException(nameof(options), options.Layout, "Unknown keyboard layout")
+            _ => throw new ArgumentOutOfRangeException(nameof(layout), layout, "Unknown keyboard layout")
         };
 
-        return DamerauLevenshtein.Calculate(source, target, layout);
+        return DamerauLevenshtein.Calculate(source, target, layoutInstance);
     }
 }

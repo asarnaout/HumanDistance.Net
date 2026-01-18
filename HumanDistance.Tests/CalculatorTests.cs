@@ -5,158 +5,160 @@ public class CalculatorTests
     [Fact]
     public void Calculate_IdenticalStrings_ReturnsZero()
     {
-        int result = Calculator.Calculate("hello", "hello");
-        Assert.Equal(0, result);
+        double result = Calculator.Calculate("hello", "hello");
+        Assert.Equal(0.0, result);
     }
 
     [Fact]
     public void Calculate_EmptyStrings_ReturnsZero()
     {
-        int result = Calculator.Calculate("", "");
-        Assert.Equal(0, result);
+        double result = Calculator.Calculate("", "");
+        Assert.Equal(0.0, result);
     }
 
     [Fact]
     public void Calculate_EmptySource_ReturnsTargetLength()
     {
-        int result = Calculator.Calculate("", "hello");
-        Assert.Equal(5, result);
+        double result = Calculator.Calculate("", "hello");
+        Assert.Equal(5.0, result);
     }
 
     [Fact]
     public void Calculate_EmptyTarget_ReturnsSourceLength()
     {
-        int result = Calculator.Calculate("hello", "");
-        Assert.Equal(5, result);
+        double result = Calculator.Calculate("hello", "");
+        Assert.Equal(5.0, result);
     }
 
     [Fact]
     public void Calculate_SingleInsertion_ReturnsOne()
     {
-        int result = Calculator.Calculate("hell", "hello");
-        Assert.Equal(1, result);
+        double result = Calculator.Calculate("hell", "hello");
+        Assert.Equal(1.0, result);
     }
 
     [Fact]
     public void Calculate_SingleDeletion_ReturnsOne()
     {
-        int result = Calculator.Calculate("hello", "hell");
-        Assert.Equal(1, result);
+        double result = Calculator.Calculate("hello", "hell");
+        Assert.Equal(1.0, result);
     }
 
     [Fact]
-    public void Calculate_SingleSubstitution_ReturnsOne()
+    public void Calculate_SingleSubstitution_ReturnsAtMostOne()
     {
-        int result = Calculator.Calculate("hello", "hallo");
-        Assert.Equal(1, result);
+        double result = Calculator.Calculate("hello", "hallo");
+        Assert.True(result <= 1.0, $"Single substitution should cost at most 1.0, got {result}");
+        Assert.True(result > 0.0, $"Single substitution should cost more than 0, got {result}");
     }
 
     [Fact]
     public void Calculate_Transposition_ReturnsOne()
     {
-        int result = Calculator.Calculate("hello", "hlelo");
-        Assert.Equal(1, result);
-    }
-
-    [Fact]
-    public void Calculate_MultipleEdits_ReturnsCorrectDistance()
-    {
-        int result = Calculator.Calculate("kitten", "sitting");
-        Assert.Equal(3, result);
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_NullOptions_ThrowsArgumentNullException()
-    {
-        Assert.Throws<ArgumentNullException>(() => Calculator.Calculate("hello", "world", null!));
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_UseKeyboardDistanceFalse_ReturnsIntegerDistance()
-    {
-        var options = new CalculatorOptions { UseKeyboardDistance = false };
-        double result = Calculator.Calculate("hello", "hallo", options);
+        double result = Calculator.Calculate("hello", "hlelo");
         Assert.Equal(1.0, result);
     }
 
     [Fact]
-    public void Calculate_WithOptions_IdenticalStrings_ReturnsZero()
+    public void Calculate_CaseInsensitive()
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double result = Calculator.Calculate("hello", "hello", options);
+        double result = Calculator.Calculate("Hello", "hello");
         Assert.Equal(0.0, result);
     }
 
     [Fact]
-    public void Calculate_WithOptions_AdjacentKeys_ReturnsLowCost()
+    public void Calculate_AdjacentKeys_ReturnsLowCost()
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double result = Calculator.Calculate("a", "s", options);
+        double result = Calculator.Calculate("a", "s");
         Assert.True(result < 0.5, $"Adjacent keys 'a' and 's' should have low cost, got {result}");
     }
 
     [Fact]
-    public void Calculate_WithOptions_DistantKeys_ReturnsHigherCost()
+    public void Calculate_DistantKeys_ReturnsHigherCost()
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double adjacentResult = Calculator.Calculate("a", "s", options);
-        double distantResult = Calculator.Calculate("a", "p", options);
+        double adjacentResult = Calculator.Calculate("a", "s");
+        double distantResult = Calculator.Calculate("a", "p");
         Assert.True(distantResult > adjacentResult,
             $"Distant keys should have higher cost than adjacent keys. Adjacent: {adjacentResult}, Distant: {distantResult}");
     }
 
     [Fact]
-    public void Calculate_WithOptions_QwertyLayout_WorksCorrectly()
+    public void Calculate_UnknownCharacters_DefaultToFullCost()
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double result = Calculator.Calculate("qwerty", "qwerty", options);
-        Assert.Equal(0.0, result);
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_AzertyLayout_WorksCorrectly()
-    {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Azerty };
-        double result = Calculator.Calculate("azerty", "azerty", options);
-        Assert.Equal(0.0, result);
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_QwertzLayout_WorksCorrectly()
-    {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwertz };
-        double result = Calculator.Calculate("qwertz", "qwertz", options);
-        Assert.Equal(0.0, result);
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_CaseInsensitive()
-    {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double result = Calculator.Calculate("Hello", "hello", options);
-        Assert.Equal(0.0, result);
-    }
-
-    [Fact]
-    public void Calculate_WithOptions_UnknownCharacters_DefaultToFullCost()
-    {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = KeyboardLayout.Qwerty };
-        double result = Calculator.Calculate("a", "α", options);
+        double result = Calculator.Calculate("a", "α");
         Assert.Equal(1.0, result);
     }
 
-    [Theory]
-    [InlineData("", "", 0)]
-    [InlineData("a", "", 1)]
-    [InlineData("", "a", 1)]
-    [InlineData("abc", "abc", 0)]
-    [InlineData("abc", "ab", 1)]
-    [InlineData("ab", "abc", 1)]
-    [InlineData("abc", "adc", 1)]
-    [InlineData("abc", "acb", 1)]
-    public void Calculate_VariousInputs_ReturnsExpectedDistance(string source, string target, int expected)
+    [Fact]
+    public void Calculate_DefaultsToQwerty()
     {
-        int result = Calculator.Calculate(source, target);
+        double result = Calculator.Calculate("q", "a");
+        double qwertyResult = Calculator.Calculate("q", "a", KeyboardLayout.Qwerty);
+        Assert.Equal(qwertyResult, result);
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_IdenticalStrings_ReturnsZero()
+    {
+        double result = Calculator.Calculate("hello", "hello", KeyboardLayout.Qwerty);
+        Assert.Equal(0.0, result);
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_AdjacentKeys_ReturnsLowCost()
+    {
+        double result = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
+        Assert.True(result < 0.5, $"Adjacent keys 'a' and 's' should have low cost, got {result}");
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_DistantKeys_ReturnsHigherCost()
+    {
+        double adjacentResult = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
+        double distantResult = Calculator.Calculate("a", "p", KeyboardLayout.Qwerty);
+        Assert.True(distantResult > adjacentResult,
+            $"Distant keys should have higher cost than adjacent keys. Adjacent: {adjacentResult}, Distant: {distantResult}");
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_QwertyLayout_WorksCorrectly()
+    {
+        double result = Calculator.Calculate("qwerty", "qwerty", KeyboardLayout.Qwerty);
+        Assert.Equal(0.0, result);
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_AzertyLayout_WorksCorrectly()
+    {
+        double result = Calculator.Calculate("azerty", "azerty", KeyboardLayout.Azerty);
+        Assert.Equal(0.0, result);
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_QwertzLayout_WorksCorrectly()
+    {
+        double result = Calculator.Calculate("qwertz", "qwertz", KeyboardLayout.Qwertz);
+        Assert.Equal(0.0, result);
+    }
+
+    [Fact]
+    public void Calculate_WithLayout_CaseInsensitive()
+    {
+        double result = Calculator.Calculate("Hello", "hello", KeyboardLayout.Qwerty);
+        Assert.Equal(0.0, result);
+    }
+
+    [Theory]
+    [InlineData("", "", 0.0)]
+    [InlineData("a", "", 1.0)]
+    [InlineData("", "a", 1.0)]
+    [InlineData("abc", "abc", 0.0)]
+    [InlineData("abc", "ab", 1.0)]
+    [InlineData("ab", "abc", 1.0)]
+    [InlineData("abc", "acb", 1.0)]
+    public void Calculate_VariousInputs_ReturnsExpectedDistance(string source, string target, double expected)
+    {
+        double result = Calculator.Calculate(source, target);
         Assert.Equal(expected, result);
     }
 
@@ -176,11 +178,10 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Qwertz, "", "a", 1.0)]
     [InlineData(KeyboardLayout.Qwertz, "abc", "abc", 0.0)]
     [InlineData(KeyboardLayout.Qwertz, "Hello", "hello", 0.0)]
-    public void Calculate_WithKeyboardDistance_VariousInputs_ReturnsExpectedDistance(
+    public void Calculate_WithLayout_VariousInputs_ReturnsExpectedDistance(
         KeyboardLayout layout, string source, string target, double expected)
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = layout };
-        double result = Calculator.Calculate(source, target, options);
+        double result = Calculator.Calculate(source, target, layout);
         Assert.Equal(expected, result);
     }
 
@@ -191,12 +192,11 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Azerty, "q", "s", "q", "m")]
     [InlineData(KeyboardLayout.Qwertz, "a", "s", "a", "p")]
     [InlineData(KeyboardLayout.Qwertz, "q", "w", "q", "m")]
-    public void Calculate_WithKeyboardDistance_AdjacentKeysLowerCostThanDistantKeys(
+    public void Calculate_WithLayout_AdjacentKeysLowerCostThanDistantKeys(
         KeyboardLayout layout, string source1, string adjacentTarget, string source2, string distantTarget)
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = layout };
-        double adjacentResult = Calculator.Calculate(source1, adjacentTarget, options);
-        double distantResult = Calculator.Calculate(source2, distantTarget, options);
+        double adjacentResult = Calculator.Calculate(source1, adjacentTarget, layout);
+        double distantResult = Calculator.Calculate(source2, distantTarget, layout);
         Assert.True(adjacentResult < distantResult,
             $"Layout {layout}: Adjacent keys ({source1}->{adjacentTarget}={adjacentResult:F3}) should have lower cost than distant keys ({source2}->{distantTarget}={distantResult:F3})");
     }
@@ -205,10 +205,9 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Qwerty)]
     [InlineData(KeyboardLayout.Azerty)]
     [InlineData(KeyboardLayout.Qwertz)]
-    public void Calculate_WithKeyboardDistance_UnknownCharacters_DefaultToFullCost(KeyboardLayout layout)
+    public void Calculate_WithLayout_UnknownCharacters_DefaultToFullCost(KeyboardLayout layout)
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = layout };
-        double result = Calculator.Calculate("a", "α", options);
+        double result = Calculator.Calculate("a", "α", layout);
         Assert.Equal(1.0, result);
     }
 
@@ -219,11 +218,10 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Azerty, "qm", "mq")]
     [InlineData(KeyboardLayout.Qwertz, "ab", "ba")]
     [InlineData(KeyboardLayout.Qwertz, "qp", "pq")]
-    public void Calculate_WithKeyboardDistance_Transposition_ReturnsOne(
+    public void Calculate_WithLayout_Transposition_ReturnsOne(
         KeyboardLayout layout, string source, string target)
     {
-        var options = new CalculatorOptions { UseKeyboardDistance = true, Layout = layout };
-        double result = Calculator.Calculate(source, target, options);
+        double result = Calculator.Calculate(source, target, layout);
         // Transposition is a timing error, not a key proximity error.
         // Cost is always 1 regardless of key positions.
         Assert.Equal(1.0, result);
