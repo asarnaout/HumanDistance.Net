@@ -1,6 +1,6 @@
 namespace HumanDistance;
 
-public sealed class EditDistanceOptions
+public sealed class CalculatorOptions
 {
     public bool UseKeyboardDistance { get; init; } = true;
 

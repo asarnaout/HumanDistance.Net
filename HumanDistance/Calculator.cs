@@ -2,14 +2,14 @@ using HumanDistance.Internal;
 
 namespace HumanDistance;
 
-public static class EditDistance
+public static class Calculator
 {
     public static int Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target)
     {
         return DamerauLevenshtein.Calculate(source, target);
     }
 
-    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, EditDistanceOptions options)
+    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, CalculatorOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
 
