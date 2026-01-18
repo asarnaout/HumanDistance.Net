@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HumanDistance", "HumanDista
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HumanDistance.Tests", "HumanDistance.Tests\HumanDistance.Tests.csproj", "{3F33C29E-EEBB-493A-8CB6-C4DDC55F62B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HumanDistance.Benchmarks", "HumanDistance.Benchmarks\HumanDistance.Benchmarks.csproj", "{477DF9A2-D096-4F09-A050-F4818F2444FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{3F33C29E-EEBB-493A-8CB6-C4DDC55F62B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F33C29E-EEBB-493A-8CB6-C4DDC55F62B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F33C29E-EEBB-493A-8CB6-C4DDC55F62B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{477DF9A2-D096-4F09-A050-F4818F2444FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{477DF9A2-D096-4F09-A050-F4818F2444FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{477DF9A2-D096-4F09-A050-F4818F2444FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{477DF9A2-D096-4F09-A050-F4818F2444FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
