@@ -57,20 +57,28 @@ internal static class DamerauLevenshtein
         {
             for (int j = 1; j <= targetLen; j++)
             {
-                T cost = getSubstitutionCost(source[i - 1], target[j - 1]);
-
                 T deletion = matrix[i - 1, j] + T.One;
                 T insertion = matrix[i, j - 1] + T.One;
-                T substitution = matrix[i - 1, j - 1] + cost;
 
-                matrix[i, j] = T.Min(deletion, T.Min(insertion, substitution));
-
-                // Transposition (always cost 1 - timing error, not proximity)
-                if (i > 1 && j > 1 &&
+                // Check for transposition (adjacent character swap)
+                // The last condition ensures it's a real swap, not just repeated characters
+                bool isTransposition = i > 1 && j > 1 &&
                     source[i - 1] == target[j - 2] &&
-                    source[i - 2] == target[j - 1])
+                    source[i - 2] == target[j - 1] &&
+                    source[i - 1] != target[j - 1];
+
+                if (isTransposition)
                 {
-                    matrix[i, j] = T.Min(matrix[i, j], matrix[i - 2, j - 2] + T.One);
+                    // Transposition is a timing/sequencing error, not a key proximity error.
+                    // Use fixed transposition cost; don't let substitutions compete.
+                    T transposition = matrix[i - 2, j - 2] + T.One;
+                    matrix[i, j] = T.Min(deletion, T.Min(insertion, transposition));
+                }
+                else
+                {
+                    T cost = getSubstitutionCost(source[i - 1], target[j - 1]);
+                    T substitution = matrix[i - 1, j - 1] + cost;
+                    matrix[i, j] = T.Min(deletion, T.Min(insertion, substitution));
                 }
             }
         }
