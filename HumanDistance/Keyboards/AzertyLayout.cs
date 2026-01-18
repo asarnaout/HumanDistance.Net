@@ -1,32 +1,8 @@
 namespace HumanDistance.Keyboards;
 
-public sealed class AzertyLayout : IKeyboardLayout
+public sealed class AzertyLayout : KeyboardLayoutBase
 {
-    private static readonly Dictionary<char, (float X, float Y)> Positions = BuildPositions();
-
-    public float MaxDistance { get; }
-
-    public AzertyLayout()
-    {
-        MaxDistance = CalculateMaxDistance();
-    }
-
-    public bool TryGetPosition(char c, out float x, out float y)
-    {
-        char lower = char.ToLowerInvariant(c);
-        if (Positions.TryGetValue(lower, out var pos))
-        {
-            x = pos.X;
-            y = pos.Y;
-            return true;
-        }
-
-        x = 0;
-        y = 0;
-        return false;
-    }
-
-    private static Dictionary<char, (float X, float Y)> BuildPositions()
+    protected override Dictionary<char, (float X, float Y)> BuildPositions()
     {
         var positions = new Dictionary<char, (float X, float Y)>();
 
@@ -60,27 +36,5 @@ public sealed class AzertyLayout : IKeyboardLayout
         }
 
         return positions;
-    }
-
-    private float CalculateMaxDistance()
-    {
-        float maxDist = 0;
-        var keys = Positions.Values.ToArray();
-
-        for (int i = 0; i < keys.Length; i++)
-        {
-            for (int j = i + 1; j < keys.Length; j++)
-            {
-                float dx = keys[i].X - keys[j].X;
-                float dy = keys[i].Y - keys[j].Y;
-                float dist = MathF.Sqrt(dx * dx + dy * dy);
-                if (dist > maxDist)
-                {
-                    maxDist = dist;
-                }
-            }
-        }
-
-        return maxDist;
     }
 }

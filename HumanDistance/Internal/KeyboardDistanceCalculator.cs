@@ -4,7 +4,7 @@ namespace HumanDistance.Internal;
 
 internal static class KeyboardDistanceCalculator
 {
-    public static double GetSubstitutionCost(char a, char b, IKeyboardLayout layout)
+    public static double GetSubstitutionCost(char a, char b, KeyboardLayoutBase layout)
     {
         if (char.ToLowerInvariant(a) == char.ToLowerInvariant(b))
         {
@@ -26,7 +26,7 @@ internal static class KeyboardDistanceCalculator
         return distance / layout.MaxDistance;
     }
 
-    public static IKeyboardLayout CreateLayout(KeyboardLayout layout) => layout switch
+    public static KeyboardLayoutBase CreateLayout(KeyboardLayout layout) => layout switch
     {
         KeyboardLayout.Qwerty => new QwertyLayout(),
         KeyboardLayout.Azerty => new AzertyLayout(),

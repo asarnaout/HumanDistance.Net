@@ -46,7 +46,7 @@ internal static class DamerauLevenshtein
         return matrix[sourceLen, targetLen];
     }
 
-    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, IKeyboardLayout layout)
+    public static double Calculate(ReadOnlySpan<char> source, ReadOnlySpan<char> target, KeyboardLayoutBase layout)
     {
         int sourceLen = source.Length;
         int targetLen = target.Length;
