@@ -6,7 +6,7 @@ namespace HumanDistance;
 /// Calculates edit distance between strings using the Damerau-Levenshtein algorithm
 /// with keyboard proximity metrics for substitutions.
 /// </summary>
-public static class Calculator
+public static class Distance
 {
     private static readonly QwertyLayout DefaultLayout = new();
 

@@ -1,11 +1,11 @@
 namespace HumanDistance.Tests;
 
-public class CalculatorTests
+public class DistanceTests
 {
     [Fact]
     public void Calculate_IdenticalStrings_ReturnsZero()
     {
-        var result = Calculator.Calculate("hello", "hello");
+        var result = Distance.Calculate("hello", "hello");
         Assert.Equal(0, result.EditDistance);
         Assert.Equal(0, result.Insertions);
         Assert.Equal(0, result.Deletions);
@@ -17,14 +17,14 @@ public class CalculatorTests
     [Fact]
     public void Calculate_EmptyStrings_ReturnsZero()
     {
-        var result = Calculator.Calculate("", "");
+        var result = Distance.Calculate("", "");
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_EmptySource_ReturnsTargetLength()
     {
-        var result = Calculator.Calculate("", "hello");
+        var result = Distance.Calculate("", "hello");
         Assert.Equal(5, result.EditDistance);
         Assert.Equal(5, result.Insertions);
         Assert.Equal(0, result.Deletions);
@@ -33,7 +33,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_EmptyTarget_ReturnsSourceLength()
     {
-        var result = Calculator.Calculate("hello", "");
+        var result = Distance.Calculate("hello", "");
         Assert.Equal(5, result.EditDistance);
         Assert.Equal(0, result.Insertions);
         Assert.Equal(5, result.Deletions);
@@ -42,7 +42,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_SingleInsertion_ReturnsOne()
     {
-        var result = Calculator.Calculate("hell", "hello");
+        var result = Distance.Calculate("hell", "hello");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Insertions);
         Assert.Equal(0, result.Deletions);
@@ -53,7 +53,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_SingleDeletion_ReturnsOne()
     {
-        var result = Calculator.Calculate("hello", "hell");
+        var result = Distance.Calculate("hello", "hell");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(0, result.Insertions);
         Assert.Equal(1, result.Deletions);
@@ -64,7 +64,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_SingleSubstitution_ReturnsOne()
     {
-        var result = Calculator.Calculate("hello", "hallo");
+        var result = Distance.Calculate("hello", "hallo");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Substitutions);
         Assert.True(result.KeyboardDistanceSum > 0.0, "Keyboard distance should be positive for substitution");
@@ -74,7 +74,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_Transposition_ReturnsOne()
     {
-        var result = Calculator.Calculate("hello", "hlelo");
+        var result = Distance.Calculate("hello", "hlelo");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Transpositions);
         Assert.Equal(0, result.Substitutions);
@@ -83,14 +83,14 @@ public class CalculatorTests
     [Fact]
     public void Calculate_CaseInsensitive()
     {
-        var result = Calculator.Calculate("Hello", "hello");
+        var result = Distance.Calculate("Hello", "hello");
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_AdjacentKeys_HasLowKeyboardDistance()
     {
-        var result = Calculator.Calculate("a", "s");
+        var result = Distance.Calculate("a", "s");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Substitutions);
         Assert.True(result.KeyboardDistanceSum < 0.5,
@@ -100,8 +100,8 @@ public class CalculatorTests
     [Fact]
     public void Calculate_DistantKeys_HasHigherKeyboardDistance()
     {
-        var adjacentResult = Calculator.Calculate("a", "s");
-        var distantResult = Calculator.Calculate("a", "p");
+        var adjacentResult = Distance.Calculate("a", "s");
+        var distantResult = Distance.Calculate("a", "p");
         Assert.True(distantResult.KeyboardDistanceSum > adjacentResult.KeyboardDistanceSum,
             $"Distant keys should have higher keyboard distance. Adjacent: {adjacentResult.KeyboardDistanceSum}, Distant: {distantResult.KeyboardDistanceSum}");
     }
@@ -109,7 +109,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_UnknownCharacters_DefaultToFullCost()
     {
-        var result = Calculator.Calculate("a", "α");
+        var result = Distance.Calculate("a", "α");
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Substitutions);
         Assert.Equal(1.0, result.KeyboardDistanceSum);
@@ -118,8 +118,8 @@ public class CalculatorTests
     [Fact]
     public void Calculate_DefaultsToQwerty()
     {
-        var result = Calculator.Calculate("q", "a");
-        var qwertyResult = Calculator.Calculate("q", "a", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("q", "a");
+        var qwertyResult = Distance.Calculate("q", "a", KeyboardLayout.Qwerty);
         Assert.Equal(qwertyResult.EditDistance, result.EditDistance);
         Assert.Equal(qwertyResult.KeyboardDistanceSum, result.KeyboardDistanceSum);
     }
@@ -127,14 +127,14 @@ public class CalculatorTests
     [Fact]
     public void Calculate_WithLayout_IdenticalStrings_ReturnsZero()
     {
-        var result = Calculator.Calculate("hello", "hello", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("hello", "hello", KeyboardLayout.Qwerty);
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_WithLayout_AdjacentKeys_HasLowKeyboardDistance()
     {
-        var result = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("a", "s", KeyboardLayout.Qwerty);
         Assert.Equal(1, result.EditDistance);
         Assert.True(result.KeyboardDistanceSum < 0.5,
             $"Adjacent keys 'a' and 's' should have low keyboard distance, got {result.KeyboardDistanceSum}");
@@ -143,8 +143,8 @@ public class CalculatorTests
     [Fact]
     public void Calculate_WithLayout_DistantKeys_HasHigherKeyboardDistance()
     {
-        var adjacentResult = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
-        var distantResult = Calculator.Calculate("a", "p", KeyboardLayout.Qwerty);
+        var adjacentResult = Distance.Calculate("a", "s", KeyboardLayout.Qwerty);
+        var distantResult = Distance.Calculate("a", "p", KeyboardLayout.Qwerty);
         Assert.True(distantResult.KeyboardDistanceSum > adjacentResult.KeyboardDistanceSum,
             $"Distant keys should have higher keyboard distance. Adjacent: {adjacentResult.KeyboardDistanceSum}, Distant: {distantResult.KeyboardDistanceSum}");
     }
@@ -152,28 +152,28 @@ public class CalculatorTests
     [Fact]
     public void Calculate_WithLayout_QwertyLayout_WorksCorrectly()
     {
-        var result = Calculator.Calculate("qwerty", "qwerty", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("qwerty", "qwerty", KeyboardLayout.Qwerty);
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_WithLayout_AzertyLayout_WorksCorrectly()
     {
-        var result = Calculator.Calculate("azerty", "azerty", KeyboardLayout.Azerty);
+        var result = Distance.Calculate("azerty", "azerty", KeyboardLayout.Azerty);
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_WithLayout_QwertzLayout_WorksCorrectly()
     {
-        var result = Calculator.Calculate("qwertz", "qwertz", KeyboardLayout.Qwertz);
+        var result = Distance.Calculate("qwertz", "qwertz", KeyboardLayout.Qwertz);
         Assert.Equal(0, result.EditDistance);
     }
 
     [Fact]
     public void Calculate_WithLayout_CaseInsensitive()
     {
-        var result = Calculator.Calculate("Hello", "hello", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("Hello", "hello", KeyboardLayout.Qwerty);
         Assert.Equal(0, result.EditDistance);
     }
 
@@ -188,7 +188,7 @@ public class CalculatorTests
     public void Calculate_VariousInputs_ReturnsExpectedDistance(
         string source, string target, int expectedDistance, int expectedInsertions, int expectedDeletions)
     {
-        var result = Calculator.Calculate(source, target);
+        var result = Distance.Calculate(source, target);
         Assert.Equal(expectedDistance, result.EditDistance);
         Assert.Equal(expectedInsertions, result.Insertions);
         Assert.Equal(expectedDeletions, result.Deletions);
@@ -204,8 +204,8 @@ public class CalculatorTests
     public void Calculate_WithLayout_AdjacentKeysLowerKeyboardDistanceThanDistantKeys(
         KeyboardLayout layout, string source1, string adjacentTarget, string source2, string distantTarget)
     {
-        var adjacentResult = Calculator.Calculate(source1, adjacentTarget, layout);
-        var distantResult = Calculator.Calculate(source2, distantTarget, layout);
+        var adjacentResult = Distance.Calculate(source1, adjacentTarget, layout);
+        var distantResult = Distance.Calculate(source2, distantTarget, layout);
         Assert.True(adjacentResult.KeyboardDistanceSum < distantResult.KeyboardDistanceSum,
             $"Layout {layout}: Adjacent keys ({source1}->{adjacentTarget}={adjacentResult.KeyboardDistanceSum:F3}) should have lower keyboard distance than distant keys ({source2}->{distantTarget}={distantResult.KeyboardDistanceSum:F3})");
     }
@@ -216,7 +216,7 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Qwertz)]
     public void Calculate_WithLayout_UnknownCharacters_DefaultToFullCost(KeyboardLayout layout)
     {
-        var result = Calculator.Calculate("a", "α", layout);
+        var result = Distance.Calculate("a", "α", layout);
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1.0, result.KeyboardDistanceSum);
     }
@@ -231,7 +231,7 @@ public class CalculatorTests
     public void Calculate_WithLayout_Transposition_ReturnsOne(
         KeyboardLayout layout, string source, string target)
     {
-        var result = Calculator.Calculate(source, target, layout);
+        var result = Distance.Calculate(source, target, layout);
         Assert.Equal(1, result.EditDistance);
         Assert.Equal(1, result.Transpositions);
         Assert.Equal(0, result.Substitutions);
@@ -256,7 +256,7 @@ public class CalculatorTests
     public void Calculate_WithLayout_VariousInputs_ReturnsExpectedEditDistance(
         KeyboardLayout layout, string source, string target, int expectedDistance)
     {
-        var result = Calculator.Calculate(source, target, layout);
+        var result = Distance.Calculate(source, target, layout);
         Assert.Equal(expectedDistance, result.EditDistance);
     }
 
@@ -270,7 +270,7 @@ public class CalculatorTests
     public void Calculate_WithLayout_SubstitutionWithExpectedKeyboardDistance(
         KeyboardLayout layout, string source, string target, int expectedSubstitutions, double expectedKeyboardDistance)
     {
-        var result = Calculator.Calculate(source, target, layout);
+        var result = Distance.Calculate(source, target, layout);
         Assert.Equal(expectedSubstitutions, result.Substitutions);
         Assert.Equal(expectedKeyboardDistance, result.KeyboardDistanceSum, precision: 10);
     }
@@ -283,7 +283,7 @@ public class CalculatorTests
         KeyboardLayout layout, string source, string target,
         int expectedTranspositions, int expectedSubstitutions, double expectedKeyboardDistance)
     {
-        var result = Calculator.Calculate(source, target, layout);
+        var result = Distance.Calculate(source, target, layout);
         Assert.Equal(expectedTranspositions, result.Transpositions);
         Assert.Equal(expectedSubstitutions, result.Substitutions);
         Assert.Equal(expectedKeyboardDistance, result.KeyboardDistanceSum, precision: 10);
@@ -300,7 +300,7 @@ public class CalculatorTests
         int expectedDistance, int expectedInsertions, int expectedDeletions,
         int expectedSubstitutions, int expectedTranspositions)
     {
-        var result = Calculator.Calculate(source, target);
+        var result = Distance.Calculate(source, target);
         Assert.Equal(expectedDistance, result.EditDistance);
         Assert.Equal(expectedInsertions, result.Insertions);
         Assert.Equal(expectedDeletions, result.Deletions);
@@ -316,22 +316,22 @@ public class CalculatorTests
     public void Calculate_NoSubstitutions_KeyboardDistanceSumIsZero()
     {
         // Pure insertions
-        var insertResult = Calculator.Calculate("abc", "abcde");
+        var insertResult = Distance.Calculate("abc", "abcde");
         Assert.Equal(0, insertResult.Substitutions);
         Assert.Equal(0.0, insertResult.KeyboardDistanceSum);
 
         // Pure deletions
-        var deleteResult = Calculator.Calculate("hello", "hel");
+        var deleteResult = Distance.Calculate("hello", "hel");
         Assert.Equal(0, deleteResult.Substitutions);
         Assert.Equal(0.0, deleteResult.KeyboardDistanceSum);
 
         // Pure transposition
-        var transposeResult = Calculator.Calculate("ab", "ba");
+        var transposeResult = Distance.Calculate("ab", "ba");
         Assert.Equal(0, transposeResult.Substitutions);
         Assert.Equal(0.0, transposeResult.KeyboardDistanceSum);
 
         // Identical strings
-        var identicalResult = Calculator.Calculate("test", "test");
+        var identicalResult = Distance.Calculate("test", "test");
         Assert.Equal(0, identicalResult.Substitutions);
         Assert.Equal(0.0, identicalResult.KeyboardDistanceSum);
     }
@@ -340,11 +340,11 @@ public class CalculatorTests
     public void Calculate_AverageKeyboardDistance_CalculatedCorrectly()
     {
         // Single substitution
-        var singleResult = Calculator.Calculate("a", "s");
+        var singleResult = Distance.Calculate("a", "s");
         Assert.Equal(singleResult.KeyboardDistanceSum, singleResult.AverageKeyboardDistance);
 
         // Multiple substitutions
-        var multiResult = Calculator.Calculate("abc", "xyz");
+        var multiResult = Distance.Calculate("abc", "xyz");
         Assert.Equal(3, multiResult.Substitutions);
         Assert.Equal(multiResult.KeyboardDistanceSum / 3, multiResult.AverageKeyboardDistance);
     }
@@ -352,7 +352,7 @@ public class CalculatorTests
     [Fact]
     public void Calculate_NoSubstitutions_AverageKeyboardDistanceIsZero()
     {
-        var result = Calculator.Calculate("abc", "abcde"); // Pure insertions
+        var result = Distance.Calculate("abc", "abcde"); // Pure insertions
         Assert.Equal(0, result.Substitutions);
         Assert.Equal(0.0, result.AverageKeyboardDistance);
     }
@@ -367,7 +367,7 @@ public class CalculatorTests
         int expectedDistance, int expectedInsertions, int expectedDeletions,
         int expectedSubstitutions, int expectedTranspositions)
     {
-        var result = Calculator.Calculate(source, target);
+        var result = Distance.Calculate(source, target);
         Assert.Equal(expectedDistance, result.EditDistance);
         Assert.Equal(expectedInsertions, result.Insertions);
         Assert.Equal(expectedDeletions, result.Deletions);
@@ -379,11 +379,11 @@ public class CalculatorTests
     public void Calculate_MultipleSubstitutions_KeyboardDistanceSumAccumulates()
     {
         // Get individual keyboard distances
-        var azResult = Calculator.Calculate("a", "z", KeyboardLayout.Qwerty);
-        var bxResult = Calculator.Calculate("b", "x", KeyboardLayout.Qwerty);
+        var azResult = Distance.Calculate("a", "z", KeyboardLayout.Qwerty);
+        var bxResult = Distance.Calculate("b", "x", KeyboardLayout.Qwerty);
 
         // Calculate combined
-        var combinedResult = Calculator.Calculate("ab", "zx", KeyboardLayout.Qwerty);
+        var combinedResult = Distance.Calculate("ab", "zx", KeyboardLayout.Qwerty);
 
         Assert.Equal(2, combinedResult.Substitutions);
         Assert.Equal(azResult.KeyboardDistanceSum + bxResult.KeyboardDistanceSum,
@@ -395,21 +395,21 @@ public class CalculatorTests
     [Fact]
     public void TypoScore_IdenticalStrings_ReturnsOne()
     {
-        var result = Calculator.Calculate("password", "password");
+        var result = Distance.Calculate("password", "password");
         Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
     public void TypoScore_BothEmpty_ReturnsOne()
     {
-        var result = Calculator.Calculate("", "");
+        var result = Distance.Calculate("", "");
         Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
     public void TypoScore_EmptyVsNonEmpty_ReturnsZero()
     {
-        var result = Calculator.Calculate("", "test");
+        var result = Distance.Calculate("", "test");
         Assert.Equal(0.0, result.TypoScore());
     }
 
@@ -417,7 +417,7 @@ public class CalculatorTests
     public void TypoScore_SingleTransposition_HighScore()
     {
         // "passwrod" vs "password" - single transposition (o and r swapped)
-        var result = Calculator.Calculate("passwrod", "password");
+        var result = Distance.Calculate("passwrod", "password");
         Assert.True(result.TypoScore() > 0.8, $"Single transposition should have high score, got {result.TypoScore()}");
     }
 
@@ -425,7 +425,7 @@ public class CalculatorTests
     public void TypoScore_SingleAdjacentKeySubstitution_HighScore()
     {
         // "passwprd" vs "password" - o→p is a truly adjacent key typo on QWERTY
-        var result = Calculator.Calculate("passwprd", "password");
+        var result = Distance.Calculate("passwprd", "password");
         Assert.True(result.TypoScore() > 0.8, $"Adjacent key substitution should have high score, got {result.TypoScore()}");
     }
 
@@ -434,8 +434,8 @@ public class CalculatorTests
     {
         // Compare adjacent vs distant substitution on QWERTY
         // 'o' is adjacent to 'i' and 'p', but far from 'a'
-        var adjacentResult = Calculator.Calculate("passwprd", "password"); // o→p (adjacent)
-        var distantResult = Calculator.Calculate("passward", "password");  // o→a (distant - different row)
+        var adjacentResult = Distance.Calculate("passwprd", "password"); // o→p (adjacent)
+        var distantResult = Distance.Calculate("passward", "password");  // o→a (distant - different row)
 
         Assert.True(distantResult.TypoScore() < adjacentResult.TypoScore(),
             $"Distant key substitution ({distantResult.TypoScore()}) should score lower than adjacent ({adjacentResult.TypoScore()})");
@@ -444,7 +444,7 @@ public class CalculatorTests
     [Fact]
     public void TypoScore_CompletelyDifferent_LowScore()
     {
-        var result = Calculator.Calculate("qwertyui", "password");
+        var result = Distance.Calculate("qwertyui", "password");
         Assert.True(result.TypoScore() < 0.3, $"Completely different strings should have low score, got {result.TypoScore()}");
     }
 
@@ -452,15 +452,15 @@ public class CalculatorTests
     public void TypoScore_ScoreNeverNegative()
     {
         // Even with maximum penalties, score should not go negative
-        var result = Calculator.Calculate("aaaa", "zzzz");
+        var result = Distance.Calculate("aaaa", "zzzz");
         Assert.True(result.TypoScore() >= 0.0, $"Score should never be negative, got {result.TypoScore()}");
     }
 
     [Fact]
     public void TypoScore_WithLayout_WorksCorrectly()
     {
-        var qwertyResult = Calculator.Calculate("a", "s", KeyboardLayout.Qwerty);
-        var azertyResult = Calculator.Calculate("a", "s", KeyboardLayout.Azerty);
+        var qwertyResult = Distance.Calculate("a", "s", KeyboardLayout.Qwerty);
+        var azertyResult = Distance.Calculate("a", "s", KeyboardLayout.Azerty);
 
         // Both should be valid scores
         Assert.True(qwertyResult.TypoScore() >= 0.0 && qwertyResult.TypoScore() <= 1.0);
@@ -473,7 +473,7 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Qwertz)]
     public void TypoScore_WithLayout_IdenticalStrings_ReturnsOne(KeyboardLayout layout)
     {
-        var result = Calculator.Calculate("test", "test", layout);
+        var result = Distance.Calculate("test", "test", layout);
         Assert.Equal(1.0, result.TypoScore());
     }
 
@@ -483,21 +483,21 @@ public class CalculatorTests
     public void IsLikelyTypo_CommonTypo_ReturnsTrue()
     {
         // "teh" is a common typo for "the"
-        var result = Calculator.Calculate("teh", "the");
+        var result = Distance.Calculate("teh", "the");
         Assert.True(result.IsLikelyTypo(threshold: 0.6));
     }
 
     [Fact]
     public void IsLikelyTypo_CompletelyDifferent_ReturnsFalse()
     {
-        var result = Calculator.Calculate("hello", "world");
+        var result = Distance.Calculate("hello", "world");
         Assert.False(result.IsLikelyTypo(threshold: 0.8));
     }
 
     [Fact]
     public void IsLikelyTypo_IdenticalStrings_ReturnsTrue()
     {
-        var result = Calculator.Calculate("test", "test");
+        var result = Distance.Calculate("test", "test");
         Assert.True(result.IsLikelyTypo());
     }
 
@@ -505,14 +505,14 @@ public class CalculatorTests
     public void IsLikelyTypo_DefaultThreshold_IsPractical()
     {
         // Single character transposition in 8-char word should pass default 0.8 threshold
-        var result = Calculator.Calculate("passwrod", "password");
+        var result = Distance.Calculate("passwrod", "password");
         Assert.True(result.IsLikelyTypo(), "Single transposition should be detected as typo with default threshold");
     }
 
     [Fact]
     public void IsLikelyTypo_WithLayout_WorksCorrectly()
     {
-        var result = Calculator.Calculate("teh", "the", KeyboardLayout.Qwerty);
+        var result = Distance.Calculate("teh", "the", KeyboardLayout.Qwerty);
         Assert.True(result.IsLikelyTypo(threshold: 0.6));
     }
 
@@ -522,7 +522,7 @@ public class CalculatorTests
     [InlineData(KeyboardLayout.Qwertz)]
     public void IsLikelyTypo_WithLayout_IdenticalStrings_ReturnsTrue(KeyboardLayout layout)
     {
-        var result = Calculator.Calculate("test", "test", layout);
+        var result = Distance.Calculate("test", "test", layout);
         Assert.True(result.IsLikelyTypo());
     }
 
@@ -532,7 +532,7 @@ public class CalculatorTests
     public void BestMatch_FindsCorrectMatch()
     {
         var candidates = new[] { "recipe", "receipt", "record" };
-        var result = Calculator.BestMatch("reciepe", candidates);
+        var result = Distance.BestMatch("reciepe", candidates);
         Assert.Equal("recipe", result);
     }
 
@@ -540,7 +540,7 @@ public class CalculatorTests
     public void BestMatch_NoMatchAboveThreshold_ReturnsNull()
     {
         var candidates = new[] { "abc", "def", "ghi" };
-        var result = Calculator.BestMatch("xyz", candidates);
+        var result = Distance.BestMatch("xyz", candidates);
         Assert.Null(result);
     }
 
@@ -548,7 +548,7 @@ public class CalculatorTests
     public void BestMatch_EmptyCandidates_ReturnsNull()
     {
         var candidates = Array.Empty<string>();
-        var result = Calculator.BestMatch("test", candidates);
+        var result = Distance.BestMatch("test", candidates);
         Assert.Null(result);
     }
 
@@ -556,7 +556,7 @@ public class CalculatorTests
     public void BestMatch_ExactMatchInCandidates_ReturnsIt()
     {
         var candidates = new[] { "apple", "banana", "cherry" };
-        var result = Calculator.BestMatch("banana", candidates);
+        var result = Distance.BestMatch("banana", candidates);
         Assert.Equal("banana", result);
     }
 
@@ -566,11 +566,11 @@ public class CalculatorTests
         var candidates = new[] { "test", "tast", "tost" };
 
         // With low minScore, should find a match
-        var lowThreshold = Calculator.BestMatch("txst", candidates, minScore: 0.3);
+        var lowThreshold = Distance.BestMatch("txst", candidates, minScore: 0.3);
         Assert.NotNull(lowThreshold);
 
         // With very high minScore, might not find a match
-        var highThreshold = Calculator.BestMatch("txst", candidates, minScore: 0.99);
+        var highThreshold = Distance.BestMatch("txst", candidates, minScore: 0.99);
         Assert.Null(highThreshold);
     }
 
@@ -578,7 +578,7 @@ public class CalculatorTests
     public void BestMatch_MultipleSimilarCandidates_ReturnsBest()
     {
         var candidates = new[] { "testing", "tasting", "tosting" };
-        var result = Calculator.BestMatch("testin", candidates);
+        var result = Distance.BestMatch("testin", candidates);
         Assert.Equal("testing", result);
     }
 
@@ -586,7 +586,7 @@ public class CalculatorTests
     public void BestMatch_WithLayout_WorksCorrectly()
     {
         var candidates = new[] { "recipe", "receipt", "record" };
-        var result = Calculator.BestMatch("reciepe", candidates, KeyboardLayout.Qwerty);
+        var result = Distance.BestMatch("reciepe", candidates, KeyboardLayout.Qwerty);
         Assert.Equal("recipe", result);
     }
 
@@ -597,7 +597,7 @@ public class CalculatorTests
     public void BestMatch_WithLayout_ExactMatch_ReturnsIt(KeyboardLayout layout)
     {
         var candidates = new[] { "apple", "banana" };
-        var result = Calculator.BestMatch("apple", candidates, layout);
+        var result = Distance.BestMatch("apple", candidates, layout);
         Assert.Equal("apple", result);
     }
 
@@ -606,14 +606,14 @@ public class CalculatorTests
     [Fact]
     public void TypoScore_CaseInsensitive()
     {
-        var result = Calculator.Calculate("TEST", "test");
+        var result = Distance.Calculate("TEST", "test");
         Assert.Equal(1.0, result.TypoScore());
     }
 
     [Fact]
     public void IsLikelyTypo_CaseInsensitive()
     {
-        var result = Calculator.Calculate("PASSWORD", "password");
+        var result = Distance.Calculate("PASSWORD", "password");
         Assert.True(result.IsLikelyTypo());
     }
 
@@ -621,7 +621,7 @@ public class CalculatorTests
     public void BestMatch_CaseInsensitive()
     {
         var candidates = new[] { "Hello", "World" };
-        var result = Calculator.BestMatch("HELLO", candidates);
+        var result = Distance.BestMatch("HELLO", candidates);
         Assert.Equal("Hello", result);
     }
 
@@ -632,7 +632,7 @@ public class CalculatorTests
     {
         // With keyboardPenaltyStrength = 0, keyboard distance should have no effect
         // Score should equal pure edit similarity
-        var result = Calculator.Calculate("a", "z"); // distant keys
+        var result = Distance.Calculate("a", "z"); // distant keys
         double editSimilarity = 1.0 - ((double)result.EditDistance / 1);
 
         Assert.Equal(editSimilarity, result.TypoScore(0.0));
@@ -642,7 +642,7 @@ public class CalculatorTests
     public void TypoScore_FullPenaltyStrength_MaximizesKeyboardImpact()
     {
         // With keyboardPenaltyStrength = 1.0, keyboard distance should have maximum effect
-        var result = Calculator.Calculate("a", "p"); // distant keys
+        var result = Distance.Calculate("a", "p"); // distant keys
         double editSimilarity = 1.0 - ((double)result.EditDistance / 1);
         double keyboardFactor = 1.0 - (result.AverageKeyboardDistance * 1.0);
         double expected = editSimilarity * keyboardFactor;
@@ -654,7 +654,7 @@ public class CalculatorTests
     public void TypoScore_HigherPenaltyStrength_LowersScoreForDistantKeys()
     {
         // Distant key substitution - need longer string so edit similarity isn't 0
-        var result = Calculator.Calculate("password", "passward"); // o→a is distant
+        var result = Distance.Calculate("password", "passward"); // o→a is distant
 
         double lowPenalty = result.TypoScore(0.2);
         double midPenalty = result.TypoScore(0.5);
@@ -670,7 +670,7 @@ public class CalculatorTests
     public void IsLikelyTypo_WithCustomPenaltyStrength_CanFlipResult()
     {
         // Distant key substitution: o→a spans multiple rows on QWERTY
-        var result = Calculator.Calculate("passward", "password");
+        var result = Distance.Calculate("passward", "password");
 
         // Calculate scores to find a threshold that demonstrates the effect
         double lowPenaltyScore = result.TypoScore(0.0);
@@ -697,8 +697,8 @@ public class CalculatorTests
         var candidates = new[] { "test", "tesq" };
 
         // Both have edit distance 1, but "test" has closer keyboard distance
-        var testResult = Calculator.Calculate("tesr", "test");
-        var tesqResult = Calculator.Calculate("tesr", "tesq");
+        var testResult = Distance.Calculate("tesr", "test");
+        var tesqResult = Distance.Calculate("tesr", "tesq");
 
         Assert.Equal(1, testResult.EditDistance);
         Assert.Equal(1, tesqResult.EditDistance);
@@ -713,7 +713,7 @@ public class CalculatorTests
             "With full penalty, adjacent key substitution should score higher");
 
         // BestMatch should return "test" when keyboard penalty is applied
-        var match = Calculator.BestMatch("tesr", candidates, minScore: 0.5, keyboardPenaltyStrength: 1.0);
+        var match = Distance.BestMatch("tesr", candidates, minScore: 0.5, keyboardPenaltyStrength: 1.0);
         Assert.Equal("test", match);
     }
 }
