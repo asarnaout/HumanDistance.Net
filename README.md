@@ -25,6 +25,11 @@ toSlap.IsLikelyTypo(); // false — distant substitution
 Distance.BestMatch("slop", new[]{"slip","slap"}); // => "slip"
 ```
 
+### More Examples
+- git → gti (transposition on a short word): IsLikelyTypo = true; plain DL distance = 1
+- form → from (transposition): IsLikelyTypo = true; form → farm (o→a distant): IsLikelyTypo = false; plain DL distance = 1 for both
+- reciept → receipt (i↔e transposition): IsLikelyTypo = true; BestMatch("reciept", ["receipt","recipe"]) = "receipt"
+
 ## Install
 
 ```bash

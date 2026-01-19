@@ -693,6 +693,48 @@ public class DistanceTests
         Assert.Null(highThreshold);
     }
 
+    // Verified examples for README: ensure behavior matches documentation claims
+    [Fact]
+    public void Examples_SlipSlopSlap_Behavior()
+    {
+        var slop = Distance.Calculate("slip", "slop");
+        var slap = Distance.Calculate("slip", "slap");
+
+        Assert.Equal(1, slop.EditDistance);
+        Assert.Equal(1, slap.EditDistance);
+        Assert.True(slop.IsLikelyTypo());
+        Assert.False(slap.IsLikelyTypo());
+
+        var bm = Distance.BestMatch("slop", new[] { "slip", "slap" });
+        Assert.Equal("slip", bm);
+    }
+
+    [Fact]
+    public void Examples_FormFromFarm_Behavior()
+    {
+        var from = Distance.Calculate("form", "from");
+        var farm = Distance.Calculate("form", "farm");
+
+        Assert.True(from.IsLikelyTypo());
+        Assert.False(farm.IsLikelyTypo());
+    }
+
+    [Fact]
+    public void Examples_GitGti_Behavior()
+    {
+        var gti = Distance.Calculate("git", "gti");
+        Assert.True(gti.IsLikelyTypo());
+    }
+
+    [Fact]
+    public void Examples_RecieptReceipt_Behavior()
+    {
+        var receipt = Distance.Calculate("reciept", "receipt");
+        Assert.True(receipt.IsLikelyTypo());
+
+        var best = Distance.BestMatch("reciept", new[] { "receipt", "recipe" });
+        Assert.Equal("receipt", best);
+    }
     [Fact]
     public void BestMatch_MeetingMinimumScore_IsAccepted()
     {
