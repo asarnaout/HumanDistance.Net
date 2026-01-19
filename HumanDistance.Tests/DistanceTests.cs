@@ -710,6 +710,21 @@ public class DistanceTests
     }
 
     [Fact]
+    public void Examples_HelloJelloCello_Behavior()
+    {
+        var jello = Distance.Calculate("hello", "jello"); // h->j adjacent
+        var cello = Distance.Calculate("hello", "cello"); // h->c distant
+
+        Assert.Equal(1, jello.EditDistance);
+        Assert.Equal(1, cello.EditDistance);
+        Assert.True(jello.IsLikelyTypo());
+        Assert.False(cello.IsLikelyTypo());
+
+        var bm = Distance.BestMatch("jello", new[] { "hello", "cello" });
+        Assert.Equal("hello", bm);
+    }
+
+    [Fact]
     public void Examples_FormFromFarm_Behavior()
     {
         var from = Distance.Calculate("form", "from");
