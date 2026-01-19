@@ -123,14 +123,36 @@ var res = Distance.Calculate("hello", "helo", mobile);
 
 ## Performance
 
-On a 13th‑gen i7 (BenchmarkDotNet, .NET 10, Release):
-- Calculate (64 chars): ~15 µs/op, ~20.7 KB alloc
-- Calculate scales roughly with input length:
-  - 4 chars ~0.14 µs, 16 chars ~1.2 µs, 256 chars ~0.35 ms
-- BestMatch scales linearly with candidates (~0.7–0.8 µs per candidate with 64‑char inputs):
-  - 10 candidates ~7.3 µs, 100 ~70 µs, 1000 ~0.79 ms
+BenchmarkDotNet (13th‑gen i7, .NET 10, Release)
 
-Notes: numbers will vary by hardware and input sizes; keyboard layout choice has minimal impact on runtime and allocations.
+- Calculate vs length (Default layout):
+
+| Length | Mean   | Allocated |
+|-------:|-------:|----------:|
+| 4      | 142 ns |    216 B  |
+| 16     | 1.20 µs|   1.5 KB  |
+| 64     | 15.14 µs|  20.7 KB |
+| 256    | 359.3 µs| 330.4 KB |
+
+- Calculate (64‑char random strings) by layout:
+
+| Layout   | Mean    | Allocated |
+|----------|--------:|----------:|
+| Default  | 14.90 µs|  20.72 KB |
+| Qwerty   | 15.49 µs|  20.72 KB |
+| Azerty   | 16.77 µs|  25.67 KB |
+| Qwertz   | 16.99 µs|  25.68 KB |
+| Custom   | 15.42 µs|  20.72 KB |
+
+- BestMatch (64‑char inputs) scales with candidate count:
+
+| Candidates | Mean     | Allocated |
+|-----------:|---------:|----------:|
+| 10         | 7.28 µs  |   9.14 KB |
+| 100        | 70.36 µs |  91.41 KB |
+| 1000       | 785.73 µs| 914.06 KB |
+
+Notes: results vary by hardware and inputs; numbers above are representative on the listed machine.
 
 ## Notes
 - Case-insensitive by default
