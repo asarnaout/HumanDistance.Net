@@ -15,6 +15,7 @@ Damerau-Levenshtein says these are both 1 edit away — but one is a likely keyb
 var toSlop = Distance.Calculate("slip", "slop");  // i->o (adjacent keys)
 var toSlap = Distance.Calculate("slip", "slap");  // i->a (distant keys)
 
+// Edit Distance alone does not give information about the likelihood of a typo
 toSlop.EditDistance;   // 1
 toSlap.EditDistance;   // 1
 
@@ -27,11 +28,13 @@ Distance.BestMatch("slop", new[]{"slip","slap"}); // => "slip"
 
 ### More Examples
 
-| Scenario                          | Pairs                                     | Plain DL | HumanDistance |
-|-----------------------------------|-------------------------------------------|----------|---------------|
-| Adjacent vs distant substitution  | slip→slop, slip→slap                      | both 1   | IsLikelyTypo: true / false; BestMatch("slop", ["slip","slap"]) = "slip" |
-| Transposition vs distant sub      | form→from, form→farm                      | both 1   | IsLikelyTypo: true / false |
-| Short-word transposition          | git→gti                                   | 1        | IsLikelyTypo: true (adaptive threshold) |
+| Source | Target | IsLikelyTypo | Plain Edit Distance |
+|--------|--------|--------------|---------------------|
+| slip   | slop   | true         | 1                   |
+| slip   | slap   | false        | 1                   |
+| form   | from   | true         | 1                   |
+| form   | farm   | false        | 1                   |
+| git    | gti    | true         | 1                   |
 
 ## Install
 
@@ -68,7 +71,7 @@ string? match = Distance.BestMatch("stauts", commands);
 ## API Essentials
 
 ### 1) IsLikelyTypo (centerpiece)
-Length-aware boolean for “is this a likely typo?” — ideal for validation, CLI suggestions, and spell-check.
+Length-aware boolean for "is this a likely typo?" — ideal for validation, CLI suggestions, and spell-check.
 
 ```csharp
 var a = Distance.Calculate("git", "gti");  // transposition
@@ -125,3 +128,4 @@ var res = Distance.Calculate("hello", "helo", mobile);
 
 ## License
 MIT — see `LICENSE`.
+
