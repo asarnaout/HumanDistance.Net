@@ -2,7 +2,7 @@
 
 Smarter string distance that understands how humans actually make typos.
 
-[![.NET](https://img.shields.io/badge/.NET-8%2B-512BD4)](https://dotnet.microsoft.com/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-8%2B-512BD4)](https://dotnet.microsoft.com/) [![NuGet](https://img.shields.io/nuget/v/HumanDistance.svg)](https://www.nuget.org/packages/HumanDistance) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Traditional edit distance treats all substitutions the same. HumanDistance blends Damerau-Levenshtein with keyboard proximity so adjacent-key typos score as closer than distant ones. It also ships an adaptive IsLikelyTypo that just works for short and long words.
 
