@@ -30,11 +30,11 @@ Distance.BestMatch("slop", new[]{"slip","slap"}); // => "slip"
 
 | Source | Target | IsLikelyTypo | Plain Edit Distance |
 |--------|--------|--------------|---------------------|
-| hello  | jello  | true         | 1                   |
-| hello  | cello  | false        | 1                   |
-| form   | from   | true         | 1                   |
-| form   | farm   | false        | 1                   |
-| git    | gti    | true         | 1                   |
+| jello  | hello  | true         | 1                   |
+| cello  | hello  | false        | 1                   |
+| from   | form   | true         | 1                   |
+| farm   | form   | false        | 1                   |
+| gti    | git    | true         | 1                   |
 
 ## Install
 
