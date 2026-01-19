@@ -121,6 +121,17 @@ var mobile = CustomKeyboardLayout.CreateBuilder()
 var res = Distance.Calculate("hello", "helo", mobile);
 ```
 
+## Performance
+
+On a 13th‑gen i7 (BenchmarkDotNet, .NET 10, Release):
+- Calculate (64 chars): ~15 µs/op, ~20.7 KB alloc
+- Calculate scales roughly with input length:
+  - 4 chars ~0.14 µs, 16 chars ~1.2 µs, 256 chars ~0.35 ms
+- BestMatch scales linearly with candidates (~0.7–0.8 µs per candidate with 64‑char inputs):
+  - 10 candidates ~7.3 µs, 100 ~70 µs, 1000 ~0.79 ms
+
+Notes: numbers will vary by hardware and input sizes; keyboard layout choice has minimal impact on runtime and allocations.
+
 ## Notes
 - Case-insensitive by default
 - Targets .NET 8.0 and 10.0
