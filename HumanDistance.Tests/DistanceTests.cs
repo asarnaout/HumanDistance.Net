@@ -735,6 +735,28 @@ public class DistanceTests
         var best = Distance.BestMatch("reciept", new[] { "receipt", "recipe" });
         Assert.Equal("receipt", best);
     }
+
+    [Fact]
+    public void Examples_EditDistance2_BestMatchPrefersAdjacentSubs()
+    {
+        // Input with two mistakes; both candidates are at DL distance 2
+        string input = "kryboqrd";   // from "keyboard" with r->e, q->a adjacent-key intent
+        string nearby = "keyboard";  // adjacent substitutions relative to input positions
+        string distant = "kpybozrd"; // same two positions changed but to distant keys
+
+        var toNearby = Distance.Calculate(input, nearby);
+        var toDistant = Distance.Calculate(input, distant);
+
+        Assert.Equal(2, toNearby.EditDistance);
+        Assert.Equal(2, toDistant.EditDistance);
+
+        // TypoScore should be higher for adjacent-key substitutions
+        Assert.True(toNearby.TypoScore() > toDistant.TypoScore());
+
+        // BestMatch should pick the adjacent-keys candidate
+        var match = Distance.BestMatch(input, new[] { nearby, distant }, minScore: 0.0, keyboardPenaltyStrength: 0.5);
+        Assert.Equal(nearby, match);
+    }
     [Fact]
     public void BestMatch_MeetingMinimumScore_IsAccepted()
     {

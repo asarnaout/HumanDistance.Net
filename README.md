@@ -35,6 +35,15 @@ Distance.BestMatch("slop", new[]{"slip","slap"}); // => "slip"
 | form   | from   | true         | 1                   |
 | form   | farm   | false        | 1                   |
 | git    | gti    | true         | 1                   |
+| kryboqrd | keyboard | false    | 2                   |
+| kryboqrd | kpybozrd | false    | 2                   |
+
+BestMatch example (DL=2 for both):
+
+```csharp
+Distance.BestMatch("kryboqrd", new[]{ "keyboard", "kpybozrd" });
+// => "keyboard"
+```
 
 ## Install
 
@@ -128,4 +137,3 @@ var res = Distance.Calculate("hello", "helo", mobile);
 
 ## License
 MIT — see `LICENSE`.
-
