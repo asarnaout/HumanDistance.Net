@@ -12,17 +12,17 @@ Damerau-Levenshtein says these are both 1 edit away — but one is a likely keyb
 
 ```csharp
 // Adjacent vs distant substitution
-var toPotting = Distance.Calculate("pitting", "potting");  // i->o (adjacent keys)
-var toPatting = Distance.Calculate("pitting", "patting");  // i->a (distant keys)
+var toSlop = Distance.Calculate("slip", "slop");  // i->o (adjacent keys)
+var toSlap = Distance.Calculate("slip", "slap");  // i->a (distant keys)
 
-toPotting.EditDistance;   // 1
-toPatting.EditDistance;   // 1
+toSlop.EditDistance;   // 1
+toSlap.EditDistance;   // 1
 
-toPotting.IsLikelyTypo(); // true  — adjacent substitution
-toPatting.IsLikelyTypo(); // false — distant substitution
+toSlop.IsLikelyTypo(); // true  — adjacent substitution
+toSlap.IsLikelyTypo(); // false — distant substitution
 
 // What the user probably meant
-Distance.BestMatch("potting", new[]{"pitting","patting"}); // => "pitting"
+Distance.BestMatch("slop", new[]{"slip","slap"}); // => "slip"
 ```
 
 ## Install
@@ -117,4 +117,3 @@ var res = Distance.Calculate("hello", "helo", mobile);
 
 ## License
 MIT — see `LICENSE`.
-
